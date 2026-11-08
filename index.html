@@ -3,9 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>우리 집 프로토타입 v11</title>
+<title>우리 집 프로토타입 v12</title>
 <style>
-  :root { --main:#b83a33; --bg:#1c1b1f; --card:#2a2a2e; --text:#f2f2f4; --muted:#9a9aa3; --warn:#ff6b6b; --line:#333338; }
+  :root { --main:#2e7d6b; --bg:#f4f5f7; --card:#ffffff; --text:#1d1d1f; --muted:#6e6e73; --warn:#d93a3a; --line:#e3e4e8; --chip:#ebecf0; --edge:#c9cad2; }
   * { box-sizing:border-box; }
   body { margin:0; font-family:-apple-system,"Apple SD Gothic Neo","Noto Sans KR",sans-serif; background:var(--bg); color:var(--text); }
   .app { max-width:430px; margin:0 auto; min-height:100vh; padding-bottom:84px; }
@@ -18,13 +18,14 @@
   .wrap { flex-wrap:wrap; }
   .sec { font-weight:700; margin:14px 2px 6px; font-size:15px; }
   button { font:inherit; min-height:44px; border:none; border-radius:10px; padding:10px 14px; background:var(--main); color:#fff; cursor:pointer; }
-  button.ghost { background:#3a3a40; color:var(--text); }
+  button.ghost { background:var(--chip); color:var(--text); }
   button.big { width:100%; margin:6px 0; }
   button.sm { min-height:44px; padding:10px 12px; font-size:14px; }
-  input, select { font:inherit; width:100%; min-height:44px; padding:10px; border:1px solid #4a4a52; border-radius:10px; margin:4px 0 10px; background:var(--bg); color:var(--text); }
+  input, select { font:inherit; width:100%; min-height:44px; padding:10px; border:1px solid var(--edge); border-radius:10px; margin:4px 0 10px; background:#fff; color:var(--text); }
   input[type=checkbox] { width:22px; height:22px; margin:0; flex-shrink:0; }
   label { font-size:14px; font-weight:600; }
-  .tag { display:inline-block; font-size:12px; padding:2px 8px; border-radius:999px; background:#4b3f7a; margin-left:4px; }
+  .tag { display:inline-block; font-size:12px; padding:2px 8px; border-radius:999px; background:#ece8f8; color:#4b3f7a; margin-left:4px; }
+  .ico { display:block; font-size:20px; line-height:1; margin-bottom:3px; }
   .seg { display:flex; gap:6px; margin:8px 0; }
   .seg button { flex:1; }
   .thumb { width:48px; height:48px; border-radius:8px; background:var(--line); display:flex; align-items:center; justify-content:center; font-size:11px; color:var(--muted); flex-shrink:0; }
@@ -32,18 +33,18 @@
   nav button { flex:1; border-radius:0; background:transparent; color:var(--muted); padding:10px 0; font-size:12px; min-height:56px; }
   nav button.on { color:var(--text); font-weight:700; }
   .tl { margin:6px 0 12px; }
-  .tl-bar { position:relative; height:22px; background:#3a3a40; border-radius:8px; overflow:hidden; }
+  .tl-bar { position:relative; height:22px; background:var(--chip); border-radius:8px; overflow:hidden; }
   .tl-book, .tl-use { position:absolute; top:0; bottom:0; }
   /* 내 사용 중은 초록, 다른 사람 사용 중은 주황, 예약은 누가 했든 보라 */
   .tl-use { background:#2e7d6b; }
   .tl-use.tl-other { background:#d08a2e; }
   .tl-book { background:#4b3f7a; }
-  .tl-now { position:absolute; top:0; bottom:0; width:2px; background:#fff; }
+  .tl-now { position:absolute; top:0; bottom:0; width:2px; background:var(--text); }
   .tl-hours { position:relative; height:16px; font-size:11px; color:var(--muted); margin-top:2px; }
   .tl-hours span { position:absolute; transform:translateX(-50%); }
   .tl-row { display:flex; align-items:center; gap:6px; margin:4px 0; }
   .tl-name { width:56px; flex-shrink:0; font-size:12px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-  .tl-track { position:relative; flex:1; height:14px; background:#3a3a40; border-radius:6px; overflow:hidden; }
+  .tl-track { position:relative; flex:1; height:14px; background:var(--chip); border-radius:6px; overflow:hidden; }
   .tl-axis { margin-left:62px; }
 .owner { display:inline-block; font-size:12px; padding:2px 8px; border-radius:999px; color:#fff; margin-left:4px; }
 </style>
@@ -59,7 +60,8 @@
 // ===== 저장 구조 (휴대폰 브라우저 안에만 저장, 계정 없음) =====
 const KEY = "proto_home_v2";
 const LOCATIONS = ["방", "주방", "냉장고", "냉동고", "찬장", "서랍", "기타"];
-const TABS = [["home","집"], ["items","물건·음식"], ["chores","청소·주방"], ["fridge","냉장고·공용품"], ["alerts","알림"], ["settings","설정"]];
+// 아래 탭은 4개. 설정은 상단 오른쪽 톱니 아이콘으로 들어감. 집 화면의 내용은 청소·주방 탭으로 옮김
+const TABS = [["items","물건·음식","📦"], ["chores","청소·주방","🧹"], ["fridge","냉장고·공용품","🧊"], ["alerts","알림","🔔"]];
 const DEF = {
   started:false, mode:null, me:"", houseName:"", inviteCode:"", members:[],
   items:[], foods:[],
@@ -377,7 +379,6 @@ function todayHTML(){
     <div class="row wrap" style="margin-bottom:10px">
             <button class="sm ghost" onclick="go('items')">물건 찾기</button>
       <button class="sm ghost" onclick="sub.items='stuff';go('items');showAddItem()">음식 추가</button>
-      <button class="sm ghost" onclick="go('chores')">청소 확인</button>
     </div>`;
 }
 function homeView(){
@@ -627,7 +628,7 @@ function weekCalendar(){
   const cells = DAYS.map((l, i) => {
     const d = new Date(mon); d.setDate(mon.getDate() + i);
     const isToday = ymd(d) === today;
-    return `<div style="flex:1;text-align:center;padding:6px 0;border-radius:8px;background:${isToday ? 'var(--main)' : '#3a3a40'};font-size:12px">${l}<div style="font-size:16px;font-weight:700">${d.getDate()}</div></div>`;
+    return `<div style="flex:1;text-align:center;padding:6px 0;border-radius:8px;background:${isToday ? 'var(--main)' : 'var(--chip)'};font-size:12px">${l}<div style="font-size:16px;font-weight:700">${d.getDate()}</div></div>`;
   }).join("");
   const end = new Date(mon); end.setDate(mon.getDate() + 6);
   return `<div class="sec" style="margin-top:0">이번 주 달력</div><div style="display:flex;gap:4px">${cells}</div>
@@ -764,16 +765,16 @@ function choresView(){
     <div class="row"><input type="checkbox" ${isDone(c) ? "checked" : ""} onchange="toggleChore(${c.id})">
       <div style="flex:1;${isDone(c) ? 'text-decoration:line-through;color:#888' : ''}">
         <div style="font-weight:700;font-size:16px">${esc(c.task)}</div>
-        <div style="margin-top:4px"><span class="muted" style="font-size:13px">담당</span> <span style="font-size:17px;font-weight:700;color:#7fd1b9">${esc(whoOf(c) || "담당 없음")}</span></div>
+        <div style="margin-top:4px"><span class="muted" style="font-size:13px">담당</span> <span style="font-size:17px;font-weight:700;color:#2e7d6b">${esc(whoOf(c) || "담당 없음")}</span></div>
         <div class="muted" style="font-size:12px">${modeLabel(c)}</div></div><button class="sm ghost" onclick="delChore(${c.id})">삭제</button></div>
     ${scheduleBlock(c)}
     </div>`).join("");
   const n = people().length;
   const hint = n === 1 ? `<div class="muted" style="margin-bottom:8px">서버 연결 전 시연용이라 지금은 이 기기의 사용자만 담당으로 고를 수 있어요.</div>` : "";
   const preview = `<div class="sec">다음 교대 미리보기</div>` + S.chores.map(c => `<div class="card" style="font-size:14px">${esc(c.task)}: <span class="muted">지금</span> <b>${esc(whoOf(c) || "담당 없음")}</b> → ${nextChangeLabel(c)}</div>`).join("");
-  return `${weekCalendar()}<div class="sec">청소 당번 (이번 주)</div>${hint}${list}${preview}
+  return `${todayHTML()}${weekCalendar()}<div class="sec">청소 당번 (이번 주)</div>${hint}${list}${preview}
     <button class="big" onclick="showAddChore()">+ 청소 항목 추가</button><div id="formArea"></div>
-    `;
+    ${kitchenHTML()}`;
 }
 
 // ===== 4. 냉장고·공용품 =====
@@ -859,7 +860,7 @@ function fridgeView(){
       : `<div><b>${esc(s.name)}</b>${s.tag ? ` <span class="tag">${esc(s.tag)}</span>` : ""}<div class="muted">${esc(shelfOwners(s).join(", ") || "담당 없음")}</div>${linkedItems(s)}</div>`}
     ${shelfBlock(s)}
     <div class="row" style="margin-top:8px">${s.photo ? `<img src="${s.photo}" alt="${s.name}" style="width:72px;height:72px;object-fit:cover;border-radius:8px">` : `<div class="thumb" style="width:72px;height:72px">사진 없음</div>`}
-      <label style="display:inline-flex;align-items:center;min-height:44px;padding:0 12px;border-radius:10px;background:#3a3a40;cursor:pointer">${s.photo ? "사진 바꾸기" : "사진 올리기"}<input type="file" accept="image/*" capture="environment" onchange="setShelfPhoto('${s.id}',this)" style="display:none"></label>
+      <label style="display:inline-flex;align-items:center;min-height:44px;padding:0 12px;border-radius:10px;background:var(--chip);cursor:pointer">${s.photo ? "사진 바꾸기" : "사진 올리기"}<input type="file" accept="image/*" capture="environment" onchange="setShelfPhoto('${s.id}',this)" style="display:none"></label>
       ${s.photo ? `<button class="sm ghost" onclick="clearShelfPhoto('${s.id}')">삭제</button>` : ""}</div></div>`; }).join("");
   const supRow = s => `<div class="card row"><div style="flex:1"><b>${esc(s.name)}</b> <span class="tag">${s.level}</span>
       <div class="muted">${s.price != null ? `£${s.price.toFixed(2)}` : "가격 미입력"}${s.date ? ` · ${dmy(s.date)} 구매` : ""}</div></div>
@@ -982,8 +983,13 @@ function settingsView(){
     <div class="card"><b>언어</b>
       <div class="muted" style="margin:4px 0 10px">앱 안의 글자를 바꿔요. 이 기기에만 저장돼요.</div>
       <div class="row" style="gap:8px">${opts}</div></div>
+    ${S.started ? `<div class="sec">우리 집</div>
+      <div class="card"><b>${esc(S.houseName || "내 물건과 음식")}</b></div>
+      ${S.mode === "solo" ? `<button class="big" onclick="startInvite()">룸메이트 초대하기</button>` : inviteBox()}` : ""}
     <div class="muted">언어를 바꿔도 저장된 물건·음식 기록은 그대로 남아요. 이름이나 메모처럼 직접 적은 글은 번역되지 않아요.</div>
-    <button class="ghost big" onclick="go('home')">← 돌아가기</button>`;
+    <button class="ghost big" onclick="resetAll()">${resetArmed ? "한 번 더 누르면 모두 지워져요" : "데이터 초기화"}</button>
+    <div id="formArea"></div>
+    <button class="ghost big" onclick="go(S.started ? 'chores' : 'home')">← 돌아가기</button>`;
 }
 
 // ===== 화면 전환 =====
@@ -1028,9 +1034,11 @@ function render(){
   cleanBookings();
   cleanUsers();
   if(!S.started && tab !== "settings") tab = "home";
-  document.getElementById("title").innerHTML = (S.started ? `<button class="sm ghost" onclick="goStart()" style="margin-right:8px">← 처음 화면</button>` : "") + esc((S.started && S.houseName) || "우리 집");
+  // 집에 들어간 뒤에는 집 화면 대신 청소·주방 탭을 처음으로 보여 줌
+  if(S.started && tab === "home") tab = "chores";
+  document.getElementById("title").innerHTML = esc((S.started && S.houseName) || "우리 집") +(S.started ? ` <button class="sm ghost" onclick="go('settings')" style="float:right" aria-label="설정">⚙️</button>` : "");
   document.getElementById("nav").innerHTML = S.started
-    ? TABS.map(([k,l]) => `<button class="${tab === k ? 'on' : ''}" onclick="go('${k}')">${l}</button>`).join("")
+    ? TABS.map(([k,l,i]) => `<button class="${tab === k ? 'on' : ''}" onclick="go('${k}')"><span class="ico">${i}</span>${l}</button>`).join("")
     : "";
   const views = {home:homeView, items:itemsView, chores:choresView, fridge:fridgeView, alerts:alertsView, settings:settingsView};
   document.getElementById("view").innerHTML = views[tab]();
