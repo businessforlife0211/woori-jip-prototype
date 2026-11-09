@@ -7,7 +7,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="theme-color" content="#f4f5f7">
-<title>우리 집 프로토타입 v21</title>
+<title>우리 집 프로토타입 v22</title>
 <style>
   :root { --main:#2e7d6b; --bg:#f4f5f7; --card:#ffffff; --text:#1d1d1f; --muted:#6e6e73; --warn:#d93a3a; --line:#e3e4e8; --chip:#ebecf0; --edge:#c9cad2; }
   * { box-sizing:border-box; }
@@ -288,7 +288,9 @@ function matches(name, q){
   return simpleCho(name).includes(simpleCho(qq));
 }
 // 가격 칸은 글자 입력이라서 읽을 때 숫자로 바꿈 (쉼표도 점으로 인정). 숫자가 아니면 없음으로 저장
-function priceOf(v){ const s = String(v || "").trim().replace(",", "."); if (!s) return null; const n = Number(s); return isFinite(n) ? n : null; }
+function priceOf(v){ const s = String(v || "").trim().replace(/,/g, ""); if (!s) return null; const n = Number(s); return isFinite(n) ? n : null; }
+// 금액 보여주기: 40000 → 40,000 (소수는 있을 때만 두 자리로)
+function moneyText(n){ return Number.isInteger(n) ? n.toLocaleString("en-GB") : n.toLocaleString("en-GB", {minimumFractionDigits: 2, maximumFractionDigits: 2}); }
 function rank(l){ const i = LOCATIONS.indexOf(l); return i < 0 ? 99 : i; }
 function toggleOther(sel, inp){ document.getElementById(inp).style.display = document.getElementById(sel).value === "기타" ? "block" : "none"; }
 function getLoc(sel, inp){ const v = document.getElementById(sel).value; return v === "기타" ? (document.getElementById(inp).value.trim() || "기타") : v; }
@@ -526,7 +528,7 @@ function itemRow(i){
       </div>`;
   }
   return `<div class="card row">${thumbHTML(i)}
-    <div style="flex:1"><b>${esc(i.name)}</b>${i.expiry ? ` <span class="tag">음식</span>` : ""}<div class="muted">${esc(i.location)}${placeName(i) ? ` · ${esc(placeName(i))}` : ""}${i.price != null ? ` · £${i.price.toFixed(2)}` : ""}</div>${food}</div>
+    <div style="flex:1"><b>${esc(i.name)}</b>${i.expiry ? ` <span class="tag">음식</span>` : ""}<div class="muted">${esc(i.location)}${placeName(i) ? ` · ${esc(placeName(i))}` : ""}${i.price != null ? ` · £${moneyText(i.price)}` : ""}</div>${food}</div>
     <div style="display:flex;flex-direction:column;gap:6px"><button class="sm ghost" onclick="showEditItem(${i.id})">수정</button><button class="sm ghost" onclick="delItem(${i.id})">삭제</button></div></div>`;
 }
 // 검색어를 칠 때는 목록만 갱신해서 검색창과 키보드가 유지되도록 함
@@ -629,7 +631,7 @@ function showEditItem(id){
     <label>장소</label><select id="eloc" onchange="toggleOther('eloc','eother');refreshPlace('eloc','eother','espaceWrap','e')">${locOptions(isOther ? "기타" : i.location)}</select>
     <input id="eother" value="${esc(isOther ? i.location : "")}" placeholder="장소를 직접 적으세요" style="display:${isOther ? 'block' : 'none'}">
     <div id="espaceWrap">${placePick(i.location, {spaceId: i.spaceId, spot: i.spot}, "e")}</div>
-    <label>샀을 때 가격 (£, 선택)</label><input id="eprice" type="text" inputmode="decimal" autocomplete="off" value="${i.price != null ? i.price : ""}">
+    <label>샀을 때 가격 (£, 선택)</label><input id="eprice" type="text" inputmode="decimal" autocomplete="off" value="${i.price != null ? moneyText(i.price) : ""}">
     <label>유통기한 (음식이면 입력, 선택)</label><input id="eexp" type="date" min="1000-01-01" max="9999-12-31" value="${i.expiry || ""}">
     <div class="row"><button onclick="saveItem(${id})">저장</button><button class="ghost" onclick="render()">취소</button></div></div>`;
   document.getElementById("formArea").scrollIntoView({block: "center"});
@@ -981,7 +983,7 @@ function fridgeView(){
       ${photoBtnsHTML("setShelfPhoto('" + s.id + "',this)")}
       ${s.photo ? `<button class="sm ghost" onclick="clearShelfPhoto('${s.id}')">삭제</button>` : ""}</div></div>`; }).join("");
   const supRow = s => `<div class="card row"><div style="flex:1"><b>${esc(s.name)}</b> <span class="tag">${en(s.level)}</span>
-      <div class="muted">${s.price != null ? `£${s.price.toFixed(2)}` : en("가격 미입력")}${s.date ? (lang === "en" ? ` · bought ${dmy(s.date)}` : ` · ${dmy(s.date)} 구매`) : ""}</div></div>
+      <div class="muted">${s.price != null ? `£${moneyText(s.price)}` : en("가격 미입력")}${s.date ? (lang === "en" ? ` · bought ${dmy(s.date)}` : ` · ${dmy(s.date)} 구매`) : ""}</div></div>
     <div class="row"><button class="sm ghost" onclick="cycleSupply(${s.id})">상태 바꾸기</button><button class="sm ghost" onclick="showEditSupply(${s.id})">수정</button><button class="sm ghost" onclick="delSupply(${s.id})">삭제</button></div></div>`;
   const sup = [...new Set(S.supplies.map(s => s.name))].sort((a,b) => a.localeCompare(b,"ko")).map(n => {
     const same = S.supplies.filter(s => s.name === n);
@@ -1027,7 +1029,7 @@ function showEditSupply(id){
   const s = S.supplies.find(x => x.id === id); if (!s) return;
   document.getElementById("formArea").innerHTML = `<div class="card">
     <label>품목 이름</label><input id="sname" value="${esc(s.name)}">
-    <label>샀을 때 가격 (£, 선택)</label><input id="sprice" type="text" inputmode="decimal" autocomplete="off" value="${s.price != null ? s.price : ""}">
+    <label>샀을 때 가격 (£, 선택)</label><input id="sprice" type="text" inputmode="decimal" autocomplete="off" value="${s.price != null ? moneyText(s.price) : ""}">
     <label>구매일 (선택)</label><input id="sdate" type="date" min="1000-01-01" max="9999-12-31" value="${s.date || ""}">
     <div class="row" style="margin-top:8px"><button onclick="saveSupply(${id})">저장</button><button class="ghost" onclick="render()">취소</button></div></div>`;
   const box = document.getElementById("sname"); box.focus(); box.scrollIntoView({block: "center"});
