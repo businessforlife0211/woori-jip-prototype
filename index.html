@@ -7,7 +7,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="theme-color" content="#f4f5f7">
-<title>우리 집 프로토타입 v26</title>
+<title>우리 집 프로토타입 v27</title>
 <style>
   :root { --main:#2e7d6b; --bg:#f4f5f7; --card:#ffffff; --text:#1d1d1f; --muted:#6e6e73; --warn:#d93a3a; --line:#e3e4e8; --chip:#ebecf0; --edge:#c9cad2; }
   * { box-sizing:border-box; }
@@ -220,7 +220,7 @@ const EN = {
   "사진이 너무 많아요. 사진을 지워 주세요":"too many photos, please delete some",
   "룸메이트 초대":"Invite roommates", "코드":"Code", "공유하기":"Share", "링크 복사":"Copy link", "룸메이트 초대하기":"Invite roommates",
   "룸메이트와 함께 쓰면 청소·주방이 같이 보여요":"Share chores and the kitchen with your roommates",
-  "바꾸고 참여하기":"Replace and join"
+  "바꾸고 참여하기":"Replace and join", "초대받은 집에 참여":"Join the house you were invited to"
 };
 // 알림·상태처럼 글자를 조각내 만든 문장은 조각마다 이 도우미로 영어를 가져옴 (한국어 모드에서는 그대로)
 function en(k){ return lang === "en" && Object.prototype.hasOwnProperty.call(EN, k) ? EN[k] : k; }
@@ -345,12 +345,32 @@ async function showJoinForm(code){
   catch(e) { window.alert("인터넷 연결을 확인해 주세요"); return; }
   if (!row) { window.alert("초대 코드를 다시 확인해 주세요"); return; }
   const risk = joinRiskHTML(code);
-  document.getElementById("formArea").innerHTML = `<div class="card">
+  // 이미 앱을 쓰는 중이면 지금 화면 위에 참여 창을 띄움. 창 안의 formArea가 먼저 잡히도록 화면 맨 앞에 넣음
+  const host = S.started ? joinOverlay() : document.getElementById("formArea");
+  const cancel = S.started || risk ? `<button class="ghost" onclick="closeJoin()">취소</button>` : "";
+  host.innerHTML = `<div class="card">
     <div>집 확인: <b>${esc(row.name)}</b></div>
     <label>내 이름</label><input id="jname" placeholder="예: 우상" value="${esc(S.me || "")}">
     ${risk}
-    ${risk ? `<div class="row wrap"><button style="background:var(--warn)" onclick="joinHouse('${code}')">바꾸고 참여하기</button><button class="ghost" onclick="render()">취소</button></div>`
-           : `<button onclick="joinHouse('${code}')">참여하기</button>`}</div>`;
+    <div class="row wrap">${risk ? `<button style="background:var(--warn)" onclick="joinHouse('${code}')">바꾸고 참여하기</button>`
+           : `<button onclick="joinHouse('${code}')">참여하기</button>`}${cancel}</div></div>`;
+  translateDom(host);
+}
+function joinOverlay(){
+  let o = document.getElementById("joinOverlay");
+  if (!o) {
+    o = document.createElement("div"); o.id = "joinOverlay";
+    o.style.cssText = "position:fixed;inset:0;z-index:1000;background:rgba(0,0,0,.6);display:flex;align-items:center;justify-content:center;padding:16px;overflow:auto";
+    o.innerHTML = `<div style="width:100%;max-width:400px;background:var(--card);border-radius:14px;padding:4px 4px 0"><div class="sec" style="margin:10px 12px 0">초대받은 집에 참여</div><div id="formArea"></div></div>`;
+    document.body.prepend(o);
+  }
+  translateDom(o);
+  return o.querySelector("#formArea");
+}
+// 참여 창 닫기: 주소의 ?join=도 지워서 새로 고침해도 다시 뜨지 않게 함
+function closeJoin(){
+  const o = document.getElementById("joinOverlay"); if (o) o.remove();
+  history.replaceState(null, "", location.pathname); render();
 }
 // 참여하면 이 기기의 집 데이터가 초대받은 집 데이터로 바뀜. 잃게 되는 것이 있으면 미리 알려 줌
 function localLoss(){
@@ -376,7 +396,12 @@ function joinRiskHTML(code){
 // 페이지를 열 때: 초대 링크가 있으면 참여 화면, 그 뒤로 10초마다 다른 기기의 변경을 확인
 function startUp(){
   const code = new URLSearchParams(location.search).get("join");
-  if (code && !S.started && /^[A-Z0-9]{6}$/i.test(code)) showJoinForm(code.toUpperCase());
+  if (code && /^[A-Z0-9]{6}$/i.test(code)) {
+    const c = code.toUpperCase();
+    // 이미 이 집에 들어와 있으면 주소만 정리
+    if (S.started && S.serverCode === c) history.replaceState(null, "", location.pathname);
+    else showJoinForm(c);
+  }
   setInterval(pullNow, 10000);
   document.addEventListener("visibilitychange", () => { if (!document.hidden) pullNow(); });
   pullNow();
@@ -561,6 +586,7 @@ async function joinHouse(code){
   S.members = [...new Set([...(S.members || []), name])];
   S.started = true; tab = "home";
   lastStamp = row.updated_at;
+  const o = document.getElementById("joinOverlay"); if (o) o.remove();
   save(); render();
   history.replaceState(null, "", location.pathname);
 }
