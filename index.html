@@ -1021,7 +1021,8 @@ function toggleNotify(k){ S.notify[k] = !S.notify[k]; save(); render(); }
 // ===== 설정 (언어 고르기) =====
 function settingsView(){
   const opts = [["ko","한국어"],["en","English"]].map(([v,l]) => `<button class="sm ${lang === v ? '' : 'ghost'}" style="flex:1" onclick="setLang('${v}')">${l}</button>`).join("");
-  return `<div class="sec" style="margin-top:0">설정</div>
+  // 돌아가기는 맨 위에 둬서, 긴 설정 화면을 끝까지 내리지 않아도 되게 함
+  return `<div class="row" style="align-items:center;gap:10px;margin:0 0 8px"><button class="sm ghost" onclick="go(S.started ? 'chores' : 'home')">← 돌아가기</button><div class="sec" style="margin:0">설정</div></div>
     <div class="card"><b>언어</b>
       <div class="muted" style="margin:4px 0 10px">앱 안의 글자를 바꿔요. 이 기기에만 저장돼요.</div>
       <div class="row" style="gap:8px">${opts}</div></div>
@@ -1037,8 +1038,7 @@ function settingsView(){
     <div class="muted">언어를 바꿔도 저장된 물건·음식 기록은 그대로 남아요. 이름이나 메모처럼 직접 적은 글은 번역되지 않아요.</div>
     ${S.started ? `<button class="ghost big" onclick="goStart()">처음 화면으로</button>` : ""}
     <button class="ghost big" onclick="resetAll()">${resetArmed ? "한 번 더 누르면 모두 지워져요" : "데이터 초기화"}</button>
-    <div id="formArea"></div>
-    <button class="ghost big" onclick="go(S.started ? 'chores' : 'home')">← 돌아가기</button>`;
+    <div id="formArea"></div>`;
 }
 
 // 집 이름 바꾸기 (비우면 "우리 집")
