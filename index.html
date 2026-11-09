@@ -691,7 +691,7 @@ function bookingSection(){
     <div class="card">
       <div class="muted">${lang === "en" ? `As of today, ${fmtDay(Date.now())}` : `오늘 ${fmtDay(Date.now())} 기준`}</div>
       <div style="display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:8px;overflow:hidden"><div style="min-width:0;overflow:hidden"><label>시작</label><input id="bstart" type="time" value="18:00" style="display:block;width:100%;max-width:100%;min-width:0;box-sizing:border-box;-webkit-appearance:none;appearance:none;font-size:16px;padding:10px 8px;margin:0"></div><div style="min-width:0;overflow:hidden"><label>끝</label><input id="bend" type="time" value="19:00" style="display:block;width:100%;max-width:100%;min-width:0;box-sizing:border-box;-webkit-appearance:none;appearance:none;font-size:16px;padding:10px 8px;margin:0"></div></div>
-            <button onclick="addBooking()">예약하기</button>
+            <button class="big" style="margin-top:12px" onclick="addBooking()">예약하기</button>
     </div>
     ${list || '<div class="card muted">예약이 없어요.</div>'}`;
 }
