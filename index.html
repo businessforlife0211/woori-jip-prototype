@@ -182,7 +182,7 @@ const EN = {
   "시연용: 이 기기 안에만 저장돼요. 룸메이트 기기에는 아직 보이지 않아요.":"Demo: saved on this device only. Not visible on your roommate's device yet.",
   "주방 예약":"Kitchen booking", "예약하기":"Book", "시작":"Start", "끝":"End", "예약이 없어요.":"No bookings.",
   "오늘은 예약도 사용 중인 사람도 없어요.":"No bookings or users today.",
-  "초록 = 내가 사용 중 · 주황 = 다른 사람 사용 중 · 보라 줄무늬 = 예약 · 흰 선 = 사용 시작":"Green = me using · Orange = someone else · Striped purple = booked · White line = start",
+  "초록 = 내가 사용 중 · 주황 = 다른 사람 사용 중 · 보라 줄무늬 = 예약":"Green = me using · Orange = someone else · Striped purple = booked",
   "시작과 끝 시간을 적어 주세요":"Please enter start and end times", "끝 시간은 시작 시간보다 뒤여야 해요":"End time must be after start time",
   "지난 시간은 예약할 수 없어요":"You can't book a past time", "내용을 적어 주세요":"Please write something",
   "특정한 사람을 가리키는 말은 적을 수 없어요. 물건이나 칸, 상황으로 적어 주세요":"You can't write about a specific person. Write about items, spaces or situations.",
@@ -753,7 +753,7 @@ function timelineHTML(){
   const hours = [0, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22, 24].map(h => `<span style="left:${h / 24 * 100}%">${h}시</span>`).join("");
   return `<div class="tl" id="tlBox">${body}
     <div class="tl-axis"><div class="tl-hours">${hours}</div></div>
-    <div class="muted" style="font-size:12px;margin-top:4px">초록 = 내가 사용 중 · 주황 = 다른 사람 사용 중 · 보라 줄무늬 = 예약 · 흰 선 = 사용 시작</div></div>`;
+    <div class="muted" style="font-size:12px;margin-top:4px">초록 = 내가 사용 중 · 주황 = 다른 사람 사용 중 · 보라 줄무늬 = 예약</div></div>`;
 }
 function toggleUse(){
   const mine = S.me || "나";
