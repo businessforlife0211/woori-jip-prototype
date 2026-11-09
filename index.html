@@ -7,7 +7,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="theme-color" content="#f4f5f7">
-<title>우리 집 프로토타입 v27</title>
+<title>우리 집 프로토타입 v28</title>
 <style>
   :root { --main:#2e7d6b; --bg:#f4f5f7; --card:#ffffff; --text:#1d1d1f; --muted:#6e6e73; --warn:#d93a3a; --line:#e3e4e8; --chip:#ebecf0; --edge:#c9cad2; }
   * { box-sizing:border-box; }
@@ -220,7 +220,7 @@ const EN = {
   "사진이 너무 많아요. 사진을 지워 주세요":"too many photos, please delete some",
   "룸메이트 초대":"Invite roommates", "코드":"Code", "공유하기":"Share", "링크 복사":"Copy link", "룸메이트 초대하기":"Invite roommates",
   "룸메이트와 함께 쓰면 청소·주방이 같이 보여요":"Share chores and the kitchen with your roommates",
-  "바꾸고 참여하기":"Replace and join", "초대받은 집에 참여":"Join the house you were invited to"
+  "바꾸고 참여하기":"Replace and join", "이미 같은 이름이 있어요. 이름 뒤에 방 번호를 붙여 주세요":"That name is already taken. Please add your room number.", "초대받은 집에 참여":"Join the house you were invited to"
 };
 // 알림·상태처럼 글자를 조각내 만든 문장은 조각마다 이 도우미로 영어를 가져옴 (한국어 모드에서는 그대로)
 function en(k){ return lang === "en" && Object.prototype.hasOwnProperty.call(EN, k) ? EN[k] : k; }
@@ -351,6 +351,7 @@ async function showJoinForm(code){
   host.innerHTML = `<div class="card">
     <div>집 확인: <b>${esc(row.name)}</b></div>
     <label>내 이름</label><input id="jname" placeholder="예: 우상" value="${esc(S.me || "")}">
+    <div id="jdup"></div>
     ${risk}
     <div class="row wrap">${risk ? `<button style="background:var(--warn)" onclick="joinHouse('${code}')">바꾸고 참여하기</button>`
            : `<button onclick="joinHouse('${code}')">참여하기</button>`}${cancel}</div></div>`;
@@ -573,6 +574,7 @@ async function checkCode(){
   await showJoinForm(c);
 }
 // 참여: 집 데이터를 받고, 내 이름을 명단에 올림
+let joinDupOk = "";
 async function joinHouse(code){
   const name = (document.getElementById("jname").value || "").trim();
   if(!name){ window.alert("내 이름을 입력하세요"); return; }
@@ -580,6 +582,17 @@ async function joinHouse(code){
   try { row = (await rpc("get_house", {p_code: code}))[0] || null; }
   catch(e) { window.alert("인터넷 연결을 확인해 주세요"); return; }
   if (!row) { window.alert("초대 코드를 다시 확인해 주세요"); return; }
+  // 같은 이름이 이미 있으면 한 번 멈춤. 다른 기기에서 쓰던 본인이면 한 번 더 누르면 그대로 들어감
+  const taken = ((row.state && row.state.members) || []).some(m => String(m).trim().toLowerCase() === name.toLowerCase());
+  if (taken && joinDupOk !== name) {
+    joinDupOk = name;
+    const box = document.getElementById("jdup");
+    if (box) box.innerHTML = lang === "en"
+      ? `<div class="card warn" style="border:1px solid var(--warn);margin:4px 0 10px">Someone called <b>${esc(name)}</b> is already in this house. If that is you on another phone, tap again. If not, add your room number (e.g. ${esc(name)} 301).</div>`
+      : `<div class="card warn" style="border:1px solid var(--warn);margin:4px 0 10px">이 집에 <b>${esc(name)}</b> 이름이 이미 있어요. 다른 기기에서 쓰던 본인이면 한 번 더 누르세요. 다른 사람이면 이름 뒤에 방 번호를 붙여 주세요 (예: ${esc(name)} 301).</div>`;
+    return;
+  }
+  joinDupOk = "";
   applyShared(row.state);
   S.serverCode = code; S.inviteCode = code; S.houseName = row.name;
   S.me = name; S.mode = "house";
@@ -1299,11 +1312,22 @@ function boardHTML(){
     </div>
     ${items}`;
 }
+// 알림판 글에 사람(이름, 방 번호)이 들어 있는지 확인
+// - 숫자 이름(방 번호): 앞뒤가 다른 숫자가 아니어야 하고, "3번 선반", "2시", "5개"처럼 단위가 붙으면 방 번호로 보지 않음
+// - 영어 이름: 단어 단위로 비교 ("Al"이 "Also"를 막지 않게), 대소문자 무시
+// - 한글 이름: 조사가 바로 붙으므로("우상이가") 글자 포함으로 비교
+function namedIn(text, name){
+  const n = String(name || "").trim(); if (!n) return false;
+  const q = n.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  if (/^\d+$/.test(n)) return new RegExp(`(^|[^0-9])${q}(?![0-9])(?!\\s*(번|시|분|개|층|일|월|주|년|cm|kg|g|ml|L|p|£|%|st|nd|rd|th))`, "i").test(text);
+  if (/^[\x00-\x7F]+$/.test(n)) return new RegExp(`(^|[^A-Za-z0-9])${q}(?![A-Za-z0-9])`, "i").test(text);
+  return text.includes(n);
+}
 function postBoard(){
   const text = (document.getElementById("bText").value || "").trim();
   if (!text) { window.alert("내용을 적어 주세요"); return; }
   const names = [...people(), S.me].filter(Boolean);
-  if (names.some(n => text.includes(n))) { window.alert("특정한 사람을 가리키는 말은 적을 수 없어요. 물건이나 칸, 상황으로 적어 주세요"); return; }
+  if (names.some(n => namedIn(text, n))) { window.alert("특정한 사람을 가리키는 말은 적을 수 없어요. 물건이나 칸, 상황으로 적어 주세요"); return; }
   S.board = S.board || [];
   // 장소가 '기타'면 직접 적은 이름을 씀 (비어 있으면 '기타')
   const sel = document.getElementById("bPlace").value;
@@ -1361,6 +1385,8 @@ function saveMyName(){
   if (!v) { window.alert("내 이름을 적어 주세요"); return; }
   const old = S.me || "나";
   if (v === old) return;
+  // 다른 사람과 같은 이름이면 담당, 물건 주인이 섞이므로 막음
+  if ((S.members || []).some(m => m !== old && String(m).trim().toLowerCase() === v.toLowerCase())) { window.alert("이미 같은 이름이 있어요. 이름 뒤에 방 번호를 붙여 주세요"); return; }
   const r = x => x === old ? v : x;
   S.me = v;
   S.members = (S.members || []).map(r);
