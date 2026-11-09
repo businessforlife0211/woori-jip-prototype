@@ -1,0 +1,12 @@
+{
+  "name": "woori-jip-prototype",
+  "private": true,
+  "description": "Shared-living app prototype. The app itself is index.html (no build step); this file is only for tests.",
+  "scripts": {
+    "serve": "node tests/serve.js",
+    "test": "playwright test"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.49.1"
+  }
+}
