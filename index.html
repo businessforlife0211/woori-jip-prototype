@@ -7,7 +7,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="theme-color" content="#f4f5f7">
-<title>우리 집 프로토타입 v28</title>
+<title>우리 집 프로토타입 v29</title>
 <style>
   :root { --main:#2e7d6b; --bg:#f4f5f7; --card:#ffffff; --text:#1d1d1f; --muted:#6e6e73; --warn:#d93a3a; --line:#e3e4e8; --chip:#ebecf0; --edge:#c9cad2; }
   * { box-sizing:border-box; }
@@ -277,11 +277,36 @@ function shareState(){
   changeNo++; clearTimeout(pushTimer); pushTimer = setTimeout(pushNow, 600);
   if (syncState !== "offline") setSync("saving");
 }
+// ===== 사진은 Supabase Storage에 따로 올리고, 집 데이터에는 주소(URL)만 남김 =====
+// 사진을 고르면 먼저 기기 안에 data: 형식으로 저장되고, 서버에 저장하기 직전에 여기서 올려서 주소로 바꿈.
+// 올리지 못하면(인터넷 끊김 등) data: 그대로 두고 다음 저장 때 다시 시도. 버킷이 없거나 거절되면 이번 실행 동안은 시도하지 않음
+let photosOff = false;
+const isDataPhoto = p => typeof p === "string" && p.startsWith("data:image/");
+function photoHolders(){ return [...(S.items || []), ...(S.spaces || [])].filter(x => isDataPhoto(x.photo)); }
+function photoName(){ const a = new Uint8Array(12); crypto.getRandomValues(a); return [...a].map(b => b.toString(16).padStart(2, "0")).join(""); }
+async function uploadPhoto(dataUrl){
+  const blob = await (await fetch(dataUrl)).blob();
+  const path = `${S.serverCode}/${photoName()}.jpg`;
+  const r = await fetch(`${SB_URL}/storage/v1/object/photos/${path}`, {method: "POST", headers: {apikey: SB_KEY, Authorization: `Bearer ${SB_KEY}`, "Content-Type": "image/jpeg"}, body: blob});
+  if (!r.ok) { const err = new Error(await r.text()); err.status = r.status; throw err; }
+  return `${SB_URL}/storage/v1/object/public/photos/${path}`;
+}
+async function uploadPendingPhotos(){
+  if (!S.serverCode || photosOff) return;
+  let changed = false;
+  for (const x of photoHolders()) {
+    const before = x.photo;
+    try { const url = await uploadPhoto(before); if (x.photo === before) { x.photo = url; changed = true; } }
+    catch(e) { if (e.status && e.status !== 429 && e.status < 500) photosOff = true; break; }
+  }
+  if (changed) { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch(e) {} }
+}
 async function pushNow(){
   if (!S.serverCode) return;
   if (pushing) { pushAgain = true; return; }
   pushing = true; const mark = changeNo;
   try {
+    await uploadPendingPhotos();
     lastStamp = await rpc("save_house", {p_code: S.serverCode, p_state: sharedSnapshot()});
     pushedNo = mark; retryMs = 15000;
     if (!unsynced()) setSync("ok");
@@ -403,6 +428,7 @@ function startUp(){
     if (S.started && S.serverCode === c) history.replaceState(null, "", location.pathname);
     else showJoinForm(c);
   }
+  if (S.serverCode && photoHolders().length) shareState();
   setInterval(pullNow, 10000);
   document.addEventListener("visibilitychange", () => { if (!document.hidden) pullNow(); });
   pullNow();
