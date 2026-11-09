@@ -7,7 +7,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="theme-color" content="#f4f5f7">
-<title>우리 집 프로토타입 v24</title>
+<title>우리 집 프로토타입 v25</title>
 <style>
   :root { --main:#2e7d6b; --bg:#f4f5f7; --card:#ffffff; --text:#1d1d1f; --muted:#6e6e73; --warn:#d93a3a; --line:#e3e4e8; --chip:#ebecf0; --edge:#c9cad2; }
   * { box-sizing:border-box; }
@@ -66,6 +66,10 @@
   .tl-name { width:56px; flex-shrink:0; font-size:12px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
   .tl-track { position:relative; flex:1; height:14px; background:var(--chip); border-radius:6px; overflow:hidden; }
   .tl-axis { margin-left:62px; }
+  .sync { display:block; font-size:12px; font-weight:400; color:var(--muted); margin-top:2px; }
+  .sync.bad { color:var(--warn); font-weight:600; }
+  .invite-mini { display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
+  .invite-mini .code { font-weight:700; letter-spacing:2px; }
 .owner { display:inline-block; font-size:12px; padding:2px 8px; border-radius:999px; color:#fff; margin-left:4px; }
 </style>
 </head>
@@ -211,7 +215,11 @@ const EN = {
   "이미 예약된 시간이 겹쳐요. 다른 시간을 골라 주세요":"That time overlaps a booking. Please pick another time.",
   "기한 지남":"Expired", "오늘 만료":"Expires today", "내일 만료":"Expires tomorrow", "아직 안 함":"— not done yet", "청소":"Cleaning",
   "지금 담당":"Assigned now", "내 청소":"My cleaning", "곧 만료":"Expiring soon", "부족":"Low", "오늘 할 일이 없어요 🎉":"Nothing to do today 🎉",
-  "바꾸면 담당, 물건 주인, 기록에 있던 내 이름도 같이 바뀌어요.":"Changing it also updates your name in chores, item owners and logs."
+  "바꾸면 담당, 물건 주인, 기록에 있던 내 이름도 같이 바뀌어요.":"Changing it also updates your name in chores, item owners and logs.",
+  "저장 중…":"Saving…", "저장됨":"Saved", "연결 안 됨 · 다시 시도 중":"Offline · retrying", "저장 안 됨":"Not saved",
+  "사진이 너무 많아요. 사진을 지워 주세요":"too many photos, please delete some",
+  "룸메이트 초대":"Invite roommates", "코드":"Code", "공유하기":"Share", "링크 복사":"Copy link", "룸메이트 초대하기":"Invite roommates",
+  "룸메이트와 함께 쓰면 청소·주방이 같이 보여요":"Share chores and the kitchen with your roommates"
 };
 // 알림·상태처럼 글자를 조각내 만든 문장은 조각마다 이 도우미로 영어를 가져옴 (한국어 모드에서는 그대로)
 function en(k){ return lang === "en" && Object.prototype.hasOwnProperty.call(EN, k) ? EN[k] : k; }
@@ -237,8 +245,25 @@ let lastStamp = null, pushTimer = null, pushing = false, pushAgain = false, chan
 async function rpc(fn, body){
   const r = await fetch(`${SB_URL}/rest/v1/rpc/${fn}`, {method: "POST", headers: {apikey: SB_KEY, "Content-Type": "application/json"}, body: JSON.stringify(body)});
   const text = await r.text();
-  if (!r.ok) { let msg = text; try { msg = JSON.parse(text).message || text; } catch(e) {} throw new Error(msg); }
+  if (!r.ok) { let msg = text; try { msg = JSON.parse(text).message || text; } catch(e) {} const err = new Error(msg); err.status = r.status; throw err; }
   return text ? JSON.parse(text) : null;
+}
+// 동기화 상태: ok(저장됨), saving(저장 중), offline(연결 안 됨, 다시 시도), failed(저장 안 됨, 다시 시도 안 함)
+let syncState = "ok", syncWhy = "", retryMs = 15000;
+// 연결 문제(네트워크, 서버 5xx, 너무 많은 요청)만 다시 시도. 'too big' 같은 오류는 같은 내용으로 다시 보내도 실패함
+const isTransient = e => !e.status || e.status >= 500 || e.status === 429 || e.status === 408;
+function setSync(st, why){ syncState = st; syncWhy = why || ""; updateSync(); }
+function syncText(){
+  if (!S.serverCode || !S.started) return "";
+  if (syncState === "saving") return en("저장 중…");
+  if (syncState === "offline") return "⚠️ " + en("연결 안 됨 · 다시 시도 중");
+  if (syncState === "failed") return "⚠️ " + en("저장 안 됨") + (syncWhy ? " · " + en(syncWhy) : "");
+  return "✓ " + en("저장됨");
+}
+function updateSync(){
+  const el = document.getElementById("sync"); if (!el) return;
+  el.textContent = syncText();
+  el.className = "sync" + (syncState === "offline" || syncState === "failed" ? " bad" : "");
 }
 function sharedSnapshot(){ const o = {}; SHARED.forEach(k => { o[k] = S[k]; }); return o; }
 function applyShared(state){ if (state) SHARED.forEach(k => { if (k in state) S[k] = state[k]; }); }
@@ -249,15 +274,31 @@ function newCode(){ let c = ""; for (let i = 0; i < 6; i++) c += CODE_CHARS[Math
 function shareState(){
   if (!S.serverCode) return;
   changeNo++; clearTimeout(pushTimer); pushTimer = setTimeout(pushNow, 600);
+  if (syncState !== "offline") setSync("saving");
 }
 async function pushNow(){
   if (!S.serverCode) return;
   if (pushing) { pushAgain = true; return; }
   pushing = true; const mark = changeNo;
-  try { lastStamp = await rpc("save_house", {p_code: S.serverCode, p_state: sharedSnapshot()}); pushedNo = mark; }
-  catch(e) { clearTimeout(pushTimer); pushTimer = setTimeout(pushNow, 15000); }
+  try {
+    lastStamp = await rpc("save_house", {p_code: S.serverCode, p_state: sharedSnapshot()});
+    pushedNo = mark; retryMs = 15000;
+    if (!unsynced()) setSync("ok");
+  } catch(e) {
+    clearTimeout(pushTimer);
+    if (isTransient(e)) {
+      // 연결이 안 되면 15초, 30초, 60초 간격으로 다시 시도 (인터넷이 돌아오면 바로 시도)
+      setSync("offline");
+      pushTimer = setTimeout(pushNow, retryMs); retryMs = Math.min(retryMs * 2, 60000);
+    } else {
+      // 다시 보내도 같은 결과라 멈춤. 다음에 내용이 바뀌면 그때 다시 저장해 봄
+      pushAgain = false;
+      setSync("failed", /too big/.test(e.message) ? "사진이 너무 많아요. 사진을 지워 주세요" : "");
+    }
+  }
   finally { pushing = false; if (pushAgain) { pushAgain = false; pushNow(); } }
 }
+window.addEventListener("online", () => { if (unsynced() && syncState === "offline") { clearTimeout(pushTimer); pushNow(); } else pullNow(); });
 const unsynced = () => changeNo !== pushedNo;
 // 입력 중이거나 폼이 열려 있으면 다시 그리지 않음 (입력한 내용이 사라지지 않게)
 function busyTyping(){
@@ -278,7 +319,8 @@ async function pullNow(){
     applyShared(row.state); lastStamp = row.updated_at;
     try { localStorage.setItem(KEY, JSON.stringify(S)); } catch(e) {}
     render();
-  } catch(e) {}
+  } catch(e) { if (isTransient(e)) setSync("offline"); return; }
+  if (syncState === "offline") setSync("ok");
 }
 // 집을 서버에 처음 만듦 (혼자 쓰던 데이터도 함께 올라감). 코드가 겹치면 다시 만듦
 async function ensureServerHouse(){
@@ -565,6 +607,20 @@ function inviteBox(){
     </div>
     <div id="inviteMsg" class="muted" style="margin-top:6px"></div>
   </div>`;
+}
+// 청소·주방 탭 맨 위의 작은 초대 카드. 혼자 쓰는 중이면 초대 시작 버튼
+function inviteMiniHTML(){
+  if (S.mode === "solo") return `<div class="card invite-mini"><div style="flex:1">${en("룸메이트와 함께 쓰면 청소·주방이 같이 보여요")}</div>
+    <button class="sm" onclick="startInviteHere()">룸메이트 초대하기</button></div>`;
+  if (!S.serverCode && !S.inviteCode) return "";
+  return `<div class="card"><div class="invite-mini"><div style="flex:1"><b>룸메이트 초대</b> <span class="muted">${en("코드")}</span> <span class="code">${esc(S.inviteCode)}</span></div>
+    <button class="sm" onclick="shareInvite()">공유하기</button><button class="sm ghost" onclick="copyInvite()">링크 복사</button></div>
+    <div id="inviteMsg" class="muted" style="font-size:12px"></div></div>`;
+}
+// 이름 입력 칸이 맨 아래 formArea에 열리므로 그쪽으로 스크롤
+async function startInviteHere(){
+  await startInvite();
+  const f = document.getElementById("formArea"); if (f && f.innerHTML.trim()) { f.scrollIntoView({behavior: "smooth", block: "center"}); const i = document.getElementById("mein"); if (i) i.focus(); }
 }
 async function shareInvite(){
   const msg = document.getElementById("inviteMsg");
@@ -1009,7 +1065,7 @@ function choresView(){
   const hint = n === 1 && !S.serverCode ? `<div class="muted" style="margin-bottom:8px">서버 연결 전 시연용이라 지금은 이 기기의 사용자만 담당으로 고를 수 있어요.</div>` : "";
   const preview = `<div class="sec">다음 교대 미리보기</div>` + S.chores.map(c => `<div class="card" style="font-size:14px">${esc(en(c.task))}: <span class="muted">${en("지금")}</span> <b>${esc(whoOf(c) || "담당 없음")}</b> → ${nextChangeLabel(c)}</div>`).join("");
   // 주방 사용은 이번 주 달력과 청소 당번 사이에 둠
-  return `${todayHTML()}${weekCalendar()}${kitchenHTML()}<div class="sec">청소 당번 (이번 주)</div>${hint}${list}${preview}
+  return `${inviteMiniHTML()}${todayHTML()}${weekCalendar()}${kitchenHTML()}<div class="sec">청소 당번 (이번 주)</div>${hint}${list}${preview}
     <button class="big" onclick="showAddChore()">+ 청소 항목 추가</button><div id="formArea"></div>`;
 }
 
@@ -1312,7 +1368,8 @@ function render(){
   if(!S.started && tab !== "settings") tab = "home";
   // 집에 들어간 뒤에는 집 화면 대신 청소·주방 탭을 처음으로 보여 줌
   if(S.started && tab === "home") tab = "chores";
-  document.getElementById("title").innerHTML = esc((S.started && S.houseName) || "우리 집") +(S.started ? ` <button class="sm ghost" onclick="go('settings')" style="float:right" aria-label="설정">⚙️</button>` : "");
+  document.getElementById("title").innerHTML = esc((S.started && S.houseName) || "우리 집") +(S.started ? ` <button class="sm ghost" onclick="go('settings')" style="float:right" aria-label="설정">⚙️</button><span id="sync" class="sync"></span>` : "");
+  updateSync();
   document.getElementById("nav").innerHTML = S.started
     ? TABS.map(([k,l,i]) => `<button class="${tab === k ? 'on' : ''}" onclick="go('${k}')"><span class="ico">${i}</span>${l}</button>`).join("")
     : "";
