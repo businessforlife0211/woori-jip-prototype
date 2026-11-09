@@ -3,7 +3,11 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>우리 집 프로토타입 v13</title>
+<!-- 홈 화면 앱으로 열 때 상태 표시줄 아래에서 내용이 시작되도록 함 -->
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="theme-color" content="#f4f5f7">
+<title>우리 집 프로토타입 v14</title>
 <style>
   :root { --main:#2e7d6b; --bg:#f4f5f7; --card:#ffffff; --text:#1d1d1f; --muted:#6e6e73; --warn:#d93a3a; --line:#e3e4e8; --chip:#ebecf0; --edge:#c9cad2; }
   * { box-sizing:border-box; }
@@ -32,7 +36,7 @@
   .thumb { width:48px; height:48px; border-radius:8px; background:var(--line); display:flex; align-items:center; justify-content:center; font-size:11px; color:var(--muted); flex-shrink:0; }
   /* 탭 바는 화면 끝까지 채우고, 각 탭 안쪽 여백으로 글자가 아이폰 모서리 곡선에 걸리지 않게 함 */
   nav { position:fixed; bottom:0; left:50%; transform:translateX(-50%); width:100%; max-width:430px; background:var(--card); display:flex; border-top:1px solid var(--line); padding:0 0 env(safe-area-inset-bottom); box-sizing:border-box; }
-  nav button { flex:1; min-width:0; border-radius:0; background:transparent; color:var(--muted); padding:8px 14px 10px; font-size:12px; min-height:56px; position:relative; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px; transition:color .15s; }
+  nav button { flex:1; min-width:0; border-radius:0; background:transparent; color:var(--muted); padding:8px 14px 4px; font-size:12px; min-height:56px; position:relative; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px; transition:color .15s; }
   nav .ico { display:flex; margin:0; font-size:0; transition:transform .12s; }
   nav .ico svg { width:24px; height:24px; fill:none; stroke:currentColor; stroke-width:1.8; stroke-linecap:round; stroke-linejoin:round; }
   nav .ico svg .f { fill:transparent; transition:fill .15s; }
@@ -195,7 +199,8 @@ const EN = {
   "혼자 쓰기":"Use it alone", "처음 화면으로":"Back to start", "먹고 버린 기록":"Eaten & thrown-away log", "먹음":"Eaten",
   "이미 예약된 시간이 겹쳐요. 다른 시간을 골라 주세요":"That time overlaps a booking. Please pick another time.",
   "기한 지남":"Expired", "오늘 만료":"Expires today", "내일 만료":"Expires tomorrow", "아직 안 함":"— not done yet", "청소":"Cleaning",
-  "지금 담당":"Assigned now", "내 청소":"My cleaning", "곧 만료":"Expiring soon", "부족":"Low", "오늘 할 일이 없어요 🎉":"Nothing to do today 🎉"
+  "지금 담당":"Assigned now", "내 청소":"My cleaning", "곧 만료":"Expiring soon", "부족":"Low", "오늘 할 일이 없어요 🎉":"Nothing to do today 🎉",
+  "바꾸면 담당, 물건 주인, 기록에 있던 내 이름도 같이 바뀌어요.":"Changing it also updates your name in chores, item owners and logs."
 };
 // 알림·상태처럼 글자를 조각내 만든 문장은 조각마다 이 도우미로 영어를 가져옴 (한국어 모드에서는 그대로)
 function en(k){ return lang === "en" && Object.prototype.hasOwnProperty.call(EN, k) ? EN[k] : k; }
@@ -1022,12 +1027,43 @@ function settingsView(){
       <div class="row" style="gap:8px">${opts}</div></div>
     ${S.started ? `<div class="sec">우리 집</div>
       <div class="card"><b>${esc(S.houseName || "내 물건과 음식")}</b></div>
-      ${S.mode === "solo" ? `<button class="big" onclick="startInvite()">룸메이트 초대하기</button>` : inviteBox()}` : ""}
+      ${S.mode === "solo" ? `<button class="big" onclick="startInvite()">룸메이트 초대하기</button>` : inviteBox()}
+      <div class="sec">이름 바꾸기</div>
+      <div class="card"><b>집 이름</b>
+        <div class="row" style="margin-top:6px"><input id="setHouse" maxlength="20" value="${esc(S.houseName || "")}" placeholder="예: 우리 집" style="flex:1"><button class="sm" onclick="saveHouseName()">저장</button></div></div>
+      <div class="card"><b>내 이름</b>
+        <div class="row" style="margin-top:6px"><input id="setMe" maxlength="20" value="${esc(S.me || "")}" placeholder="예: 희섭" style="flex:1"><button class="sm" onclick="saveMyName()">저장</button></div>
+        <div class="muted" style="margin-top:6px">바꾸면 담당, 물건 주인, 기록에 있던 내 이름도 같이 바뀌어요.</div></div>` : ""}
     <div class="muted">언어를 바꿔도 저장된 물건·음식 기록은 그대로 남아요. 이름이나 메모처럼 직접 적은 글은 번역되지 않아요.</div>
     ${S.started ? `<button class="ghost big" onclick="goStart()">처음 화면으로</button>` : ""}
     <button class="ghost big" onclick="resetAll()">${resetArmed ? "한 번 더 누르면 모두 지워져요" : "데이터 초기화"}</button>
     <div id="formArea"></div>
     <button class="ghost big" onclick="go(S.started ? 'chores' : 'home')">← 돌아가기</button>`;
+}
+
+// 집 이름 바꾸기 (비우면 "우리 집")
+function saveHouseName(){
+  const v = (document.getElementById("setHouse").value || "").trim().slice(0, 20);
+  S.houseName = v || "우리 집"; save(); render();
+}
+// 내 이름 바꾸기: 담당, 물건 주인, 먹은 기록, 공간 주인, 주방 사용, 예약에 있던 옛 이름도 같이 바꿈
+function saveMyName(){
+  const v = (document.getElementById("setMe").value || "").trim().slice(0, 20);
+  if (!v) { window.alert("내 이름을 적어 주세요"); return; }
+  const old = S.me || "나";
+  if (v === old) return;
+  const r = x => x === old ? v : x;
+  S.me = v;
+  S.members = (S.members || []).map(r);
+  (S.items || []).forEach(i => { i.owner = r(i.owner); });
+  (S.foods || []).forEach(f => { f.owner = r(f.owner); });
+  (S.log || []).forEach(l => { l.owner = r(l.owner); });
+  (S.spaces || []).forEach(s => { if (Array.isArray(s.owners)) s.owners = s.owners.map(r); });
+  (S.chores || []).forEach(c => { c.who = r(c.who); });
+  (S.bookings || []).forEach(b => { b.who = r(b.who); });
+  (S.users || []).forEach(u => { u.who = r(u.who); });
+  if (S.kitchen) S.kitchen.who = r(S.kitchen.who);
+  save(); render();
 }
 
 // ===== 화면 전환 =====
