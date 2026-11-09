@@ -7,7 +7,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="theme-color" content="#f4f5f7">
-<title>우리 집 프로토타입 v29</title>
+<title>우리 집 프로토타입 v30</title>
 <style>
   :root { --main:#2e7d6b; --bg:#f4f5f7; --card:#ffffff; --text:#1d1d1f; --muted:#6e6e73; --warn:#d93a3a; --line:#e3e4e8; --chip:#ebecf0; --edge:#c9cad2; }
   * { box-sizing:border-box; }
@@ -685,7 +685,8 @@ function homeView(){
 }
 // 초대 카드: 코드 표시, 복사, 공유 창 (인스타 DM, 카카오톡 등 설치된 앱 선택 가능)
 function inviteLink(){ return `${location.origin}${location.pathname}?join=${S.serverCode || S.inviteCode}`; }
-function inviteText(){ return en("우리 집 앱에 들어오세요. 아래 링크를 누르면 바로 들어와요 (앱 설치 필요 없음)") + "\n" + inviteLink(); }
+// 공유·복사 문구는 언어 설정과 관계없이 항상 영어 (받는 룸메이트가 대부분 영어를 씀)
+function inviteText(){ return EN["우리 집 앱에 들어오세요. 아래 링크를 누르면 바로 들어와요 (앱 설치 필요 없음)"] + "\n" + inviteLink(); }
 function inviteBox(){
   return `<div class="card">
     <div class="muted">초대 코드</div>
@@ -715,7 +716,7 @@ async function startInviteHere(){
 async function shareInvite(){
   const msg = document.getElementById("inviteMsg");
   if (navigator.share) {
-    try { await navigator.share({ title: "우리 집 초대", text: inviteText() }); msg.textContent = "공유 창을 열었어요."; }
+    try { await navigator.share({ title: "Our home invite", text: inviteText() }); msg.textContent = "공유 창을 열었어요."; }
     catch(e) { msg.textContent = "공유를 취소했어요."; }
   } else {
     await copyInvite();
@@ -810,9 +811,11 @@ function showAddItem(){
     <label>유통기한 (음식이면 입력, 선택)</label><input id="iexp" type="date" min="1000-01-01" max="9999-12-31"><button onclick="addItem()">저장</button></div>`;
 }
 // ===== 물건 사진 (이 기기 안에만 저장) =====
-// 고른 사진은 바로 줄여 두고(긴 쪽 240px, JPEG), 저장 버튼을 누르면 그 결과를 씀.
-// 휴대폰 저장 공간(약 5MB)을 아끼려고 작게 줄임
+// 고른 사진은 바로 줄여 두고(긴 쪽 1280px, JPEG), 저장 버튼을 누르면 그 결과를 씀.
+// 집 모드는 서버에 올린 뒤 주소만 기기에 남음. 혼자 쓰기는 기기 안(약 5MB)에 그대로 두므로 파일을 더 작게(120KB 아래) 만듦
 let photoPick = null; // Promise<dataURL | null>
+// 사진 긴 쪽 크기. 아이폰 화면(가로 약 1170px)에서 크게 봐도 깨지지 않을 정도
+const PHOTO_MAX = 1280;
 function shrinkPhoto(file, max){
   return new Promise(resolve => {
     const reader = new FileReader();
@@ -824,8 +827,13 @@ function shrinkPhoto(file, max){
         const scale = Math.min(1, max / Math.max(img.width, img.height));
         const c = document.createElement("canvas");
         c.width = Math.max(1, Math.round(img.width * scale)); c.height = Math.max(1, Math.round(img.height * scale));
-        c.getContext("2d").drawImage(img, 0, 0, c.width, c.height);
-        resolve(c.toDataURL("image/jpeg", 0.7));
+        const g = c.getContext("2d"); g.imageSmoothingEnabled = true; g.imageSmoothingQuality = "high";
+        g.drawImage(img, 0, 0, c.width, c.height);
+        // 화질은 0.85부터 시작해서, 280KB(서버 한도 300KB) 아래가 될 때까지만 낮춤
+        let out = "";
+        const limit = S.serverCode ? 280000 : 120000;
+        for (const q of [0.85, 0.78, 0.7, 0.6, 0.5, 0.4]) { out = c.toDataURL("image/jpeg", q); if (out.length * 0.75 < limit) break; }
+        resolve(out);
       };
       img.src = reader.result;
     };
@@ -834,7 +842,7 @@ function shrinkPhoto(file, max){
 }
 function pickItemPhoto(el){
   const f = el.files && el.files[0];
-  photoPick = f ? shrinkPhoto(f, 480) : null;
+  photoPick = f ? shrinkPhoto(f, PHOTO_MAX) : null;
   const mark = el.closest("label") && el.closest("label").nextElementSibling;
   // 고른 사진을 바로 작게 보여 줌 (줄이기가 끝나면 미리보기로 바뀜)
   if (mark && mark.classList.contains("photo-mark")) {
@@ -1259,24 +1267,13 @@ function fridgeView(){
     : `<button class="big" onclick="showAddShelf()">+ 칸 추가</button><div id="formArea"></div>` + shelves;
   return seg("fridge", [["shelves","공간"],["supplies","공용품"]]) + body;
 }
-// 공간 사진: 저장 공간을 아끼려고 작은 크기(240px)로 줄여서 저장
-function setShelfPhoto(id, el){
+// 공간 사진: 물건 사진과 같은 크기·화질로 줄여서 저장
+async function setShelfPhoto(id, el){
   const file = el.files && el.files[0];
   if(!file) return;
-  const reader = new FileReader();
-  reader.onload = () => {
-    const img = new Image();
-    img.onload = () => {
-      const scale = Math.min(1, 240 / Math.max(img.width, img.height));
-      const c = document.createElement("canvas");
-      c.width = Math.round(img.width * scale); c.height = Math.round(img.height * scale);
-      c.getContext("2d").drawImage(img, 0, 0, c.width, c.height);
-      const s = spaceOf(id); if (s) s.photo = c.toDataURL("image/jpeg", 0.7);
-      save(); render();
-    };
-    img.src = reader.result;
-  };
-  reader.readAsDataURL(file);
+  const d = await shrinkPhoto(file, PHOTO_MAX);
+  const s = spaceOf(id); if (s && d) s.photo = d;
+  save(); render();
 }
 function clearShelfPhoto(id){ const s = spaceOf(id); if (s) delete s.photo; save(); render(); }
 // 기본으로 있던 품목도 포함해 모든 공용품을 삭제할 수 있음
