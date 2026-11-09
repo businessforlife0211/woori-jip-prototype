@@ -139,7 +139,7 @@ document.documentElement.lang = lang;
 const EN = {
   "집":"Home", "물건·음식":"Items & food", "청소·주방":"Chores & kitchen", "냉장고·공용품":"Fridge & supplies", "알림":"Alerts", "설정":"Settings",
   "우리 집":"Our home", "← 처음 화면":"← Start", "← 돌아가기":"← Back",
-  "지금 무엇을 하고 싶으세요?":"What would you like to do?", "우리 집 만들기":"Create our home", "초대 코드가 있어요":"I have an invite code",
+  "지금 무엇을 하고 싶으세요?":"What would you like to do?", "그룹 만들기":"Create a group", "초대 코드가 있어요":"I have an invite code",
   "집 이름":"House name", "내 이름 또는 방 번호":"My name or room number", "내 이름":"My name", "만들기":"Create",
   "집 이름을 입력하세요":"Please enter a house name", "내 이름 또는 방 번호를 적어 주세요":"Please enter your name or room number",
   "초대 코드":"Invite code", "확인":"Confirm", "코드를 입력하세요":"Please enter a code", "집 확인:":"House found:",
@@ -335,7 +335,7 @@ function seg(key, opts){ return `<div class="seg">${opts.map(([v,l]) => `<button
 function startHTML(){
   return `<div class="card">
     <div class="sec" style="margin-top:0">지금 무엇을 하고 싶으세요?</div>
-    <button class="big" onclick="showCreate()">우리 집 만들기</button>
+    <button class="big" onclick="showCreate()">그룹 만들기</button>
     <button class="ghost big" onclick="pickSolo()">혼자 쓰기</button>
     <button class="ghost big" onclick="showJoin()">초대 코드가 있어요</button>
     <button class="ghost big" onclick="go('settings')">설정</button>
