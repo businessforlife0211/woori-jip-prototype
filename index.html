@@ -91,6 +91,14 @@
   .hero .u b { font-weight:700; }
   .hero .u span { color:#9BA3AE; flex:1; }
   .hero .u button { min-height:30px; height:30px; padding:0 10px; font-size:12px; background:rgba(255,255,255,.12); color:#fff; }
+  .dish .dh { display:flex; justify-content:space-between; align-items:baseline; gap:8px; margin-bottom:2px; }
+  .dish .dh b { font-size:16px; font-weight:800; }
+  .dish .dh .note { font-size:13px; color:var(--muted); font-weight:600; }
+  .drow { display:flex; align-items:center; gap:8px; padding:10px 0; border-top:1px solid var(--line); font-size:15px; }
+  .drow .dn { font-weight:700; flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .drow .ds { font-size:13px; color:var(--muted); font-weight:600; }
+  .drow .ds.dirty { color:var(--warn); }
+  .drow .dbtn { min-height:34px; height:34px; padding:0 12px; font-size:13px; border-radius:17px; background:var(--main); color:#fff; flex-shrink:0; }
   .hero .ask { color:#FFB4B4; font-size:13px; margin-top:6px; }
   /* 작은 상태 칸 3개 */
   .tiles { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:8px; margin:10px 0 0; }
@@ -212,6 +220,7 @@ const DEF = {
     {id:3, task:"바닥 청소", who:"", done:false, photo:false}
   ],
   kitchen:{inUse:false, who:"", since:null},
+  dishes:{},
   spaces:[{id:"s1",name:"1번 선반",owners:[],tag:"냉장"},{id:"s2",name:"2번 선반",owners:[],tag:"냉장"},{id:"s3",name:"3번 선반",owners:[],tag:"냉장"},{id:"s4",name:"공용 칸",owners:[],tag:"서랍"}],
   supplies:[
     {id:1, name:"주방세제", level:"충분", price:null, date:""},
@@ -256,6 +265,7 @@ function cleanState(st){
   if ("houseName" in st) st.houseName = txt(st.houseName);
   if ("weekKey" in st) st.weekKey = txt(st.weekKey);
   if ("spots" in st) { const o = {}; if (st.spots && typeof st.spots === "object") Object.keys(st.spots).forEach(k => { if (Array.isArray(st.spots[k])) o[txt(k)] = st.spots[k].map(txt); }); st.spots = o; }
+  if ("dishes" in st) { const o = {}; if (st.dishes && typeof st.dishes === "object") Object.keys(st.dishes).forEach(k => { const v = st.dishes[k] || {}; o[txt(k)] = {dirty: !!v.dirty, at: isNum(v.at) ? v.at : 0}; }); st.dishes = o; }
   if ("notify" in st) { const n = st.notify && typeof st.notify === "object" ? st.notify : {}; st.notify = {food: n.food !== false, chore: n.chore !== false, supply: n.supply !== false}; }
   return st;
 }
@@ -365,7 +375,7 @@ const EN = {
   "지금 담당":"Assigned now", "내 청소":"My cleaning", "곧 만료":"Expiring soon", "부족":"Low", "바꾸면 담당, 물건 주인, 기록에 있던 내 이름도 같이 바뀌어요.":"Changing it also updates your name in chores, item owners and logs.",
   "저장 중…":"Saving…", "저장됨":"Saved", "연결 안 됨 · 다시 시도 중":"Offline · retrying", "저장 안 됨":"Not saved",
   "사진이 너무 많아요. 사진을 지워 주세요":"too many photos, please delete some",
-  "룸메이트 초대":"Invite roommates", "코드":"Code", "공유하기":"Share", "룸메이트와 함께 쓰면 청소·주방이 같이 보여요":"Share chores and the kitchen with your roommates",
+  "룸메이트 초대":"Invite roommates", "그릇":"Dishes", "씻은 그릇만 쓰기":"Use only washed dishes", "깨끗함":"Clean", "쌓임":"Dirty", "씻었어요":"Washed", "쌓였어요":"Piled up", "코드":"Code", "공유하기":"Share", "룸메이트와 함께 쓰면 청소·주방이 같이 보여요":"Share chores and the kitchen with your roommates",
   "바꾸고 참여하기":"Replace and join", "개인정보 안내":"Privacy", "틀린 코드를 너무 많이 넣었어요. 15분 뒤에 다시 해 주세요":"Too many wrong codes. Please try again in 15 minutes.", "예: AB12CD34EF":"e.g. AB12CD34EF",
   "오늘 우리 집":"Today at home", "초대":"Invite", "닫기":"Close",
   "비어 있어요":"Free now", "다음 예약":"Next booking", "예약 중":"Booked", "오늘 예약 없음":"No bookings today", "나":"Me",
@@ -396,7 +406,7 @@ let itemQuery = "", itemView = "location";
 const SB_URL = "https://redmrqgdndzbkvtbrngh.supabase.co";
 const SB_KEY = "sb_publishable_8hsqP4dUlsQCGuOjJIo7CA_QlrVTWqY";
 // 집 전체가 함께 보이는 항목. 나(이름), 시작 화면, 언어는 기기마다 따로 둠
-const SHARED = ["houseName","members","items","foods","chores","spaces","supplies","notify","board","weekKey","bookings","users","log","spots","kitchen"];
+const SHARED = ["houseName","members","items","foods","chores","spaces","supplies","notify","board","weekKey","bookings","users","log","spots","kitchen","dishes"];
 let lastStamp = null, pushTimer = null, pushing = false, pushAgain = false, changeNo = 0, pushedNo = 0;
 async function rpc(fn, body){
   const r = await fetch(`${SB_URL}/rest/v1/rpc/${fn}`, {method: "POST", headers: {apikey: SB_KEY, "Content-Type": "application/json"}, body: JSON.stringify(body)});
@@ -1430,6 +1440,7 @@ function saveMyName(){
   (S.bookings || []).forEach(b => { b.who = r(b.who); });
   (S.users || []).forEach(u => { u.who = r(u.who); });
   if (S.kitchen) S.kitchen.who = r(S.kitchen.who);
+  if (S.dishes && old in S.dishes) { S.dishes[v] = S.dishes[old]; delete S.dishes[old]; }
   save(); render();
 }
 
@@ -1553,6 +1564,32 @@ function bookingFormHTML(){
     <div class="hint">${en("사용 시작을 누르고 2시간이 지나면 자동으로 끝나요")}</div>`;
 }
 function openBooking(){ openSheet(bookingFormHTML(), "주방 예약"); }
+// 식기: 각자 자기 그릇만 관리하고, 씻은 그릇만 쓰는 규칙을 한눈에 보여 줌
+function timeAgoText(t){
+  if (!t) return "";
+  const m = minsSince(t);
+  if (lang === "en") return m < 60 ? `${m} min ago` : `${Math.floor(m / 60)} h ago`;
+  return m < 60 ? `${m}분 전` : `${Math.floor(m / 60)}시간 전`;
+}
+function dishCard(){
+  const me = S.me || "나";
+  const dishes = S.dishes || {};
+  const rows = people().map(p => {
+    const d = dishes[p] || {dirty: false, at: 0};
+    const mine = p === me;
+    const label = d.dirty ? `<span class="ds dirty">${en("쌓임")}${d.at ? " · " + timeAgoText(d.at) : ""}</span>` : `<span class="ds">${en("깨끗함")}</span>`;
+    const btn = mine ? `<button class="dbtn" onclick="toggleDish()">${d.dirty ? en("씻었어요") : en("쌓였어요")}</button>` : "";
+    return `<div class="drow"><span class="dn">${mine ? en("나") : esc(p)}</span>${label}${btn}</div>`;
+  }).join("");
+  return `<div class="card dish"><div class="dh"><b>${en("그릇")}</b><span class="note">${en("씻은 그릇만 쓰기")}</span></div>${rows}</div>`;
+}
+function toggleDish(){
+  const me = S.me || "나";
+  S.dishes = S.dishes || {};
+  const d = S.dishes[me] || {dirty: false, at: 0};
+  S.dishes[me] = {dirty: !d.dirty, at: Date.now()};
+  save(); render();
+}
 function choresView(){
   const n = people().length;
   const strip = (t) => `<div class="invite-strip"><div>${en(t)}</div><button onclick="openInvite()">${en("초대")}</button></div>`;
@@ -1561,7 +1598,7 @@ function choresView(){
   const range = `${mon.getDate()}/${mon.getMonth() + 1} – ${end.getDate()}/${end.getMonth() + 1}`;
   const bookings = [...S.bookings].sort((a, b) => a.start - b.start).map(b => `<div class="li" style="cursor:default;min-height:48px;padding:8px 0">
       <div class="main"><div class="t" style="font-size:15px">${fmtTime(b.start)} – ${fmtTime(b.end)}</div></div>${b.who === (S.me || "나") ? `<div class="who me">${avatar(b.who)}</div>` : whoHTML(b.who)}<button class="x" onclick="cancelBooking(${b.id})" aria-label="취소">×</button></div>`).join("");
-  return `<div id="formArea"></div>${invite}${kitchenHero()}${tilesHTML()}
+  return `<div id="formArea"></div>${invite}${kitchenHero()}${dishCard()}${tilesHTML()}
     <div class="sech"><div class="sec">이번 주 청소</div><span class="note">${range}</span></div>
     <div class="list" id="choreList">${S.chores.map(choreRow).join("")}
       <div class="li" onclick="openSheet('','청소 항목 추가');showAddChore()"><span class="add">+ ${en("청소 항목 추가")}</span></div></div>
