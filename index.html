@@ -2,14 +2,15 @@
 <html lang="ko">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>우리 집 프로토타입 v12</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>우리 집 프로토타입 v13</title>
 <style>
   :root { --main:#2e7d6b; --bg:#f4f5f7; --card:#ffffff; --text:#1d1d1f; --muted:#6e6e73; --warn:#d93a3a; --line:#e3e4e8; --chip:#ebecf0; --edge:#c9cad2; }
   * { box-sizing:border-box; }
   body { margin:0; font-family:-apple-system,"Apple SD Gothic Neo","Noto Sans KR",sans-serif; background:var(--bg); color:var(--text); }
-  .app { max-width:430px; margin:0 auto; min-height:100vh; padding-bottom:84px; }
-  header { padding:14px 16px; font-weight:700; font-size:18px; border-bottom:1px solid var(--line); }
+  /* 아이폰 화면 모서리와 아래 홈 막대에 글자가 가려지지 않도록 안전 영역만큼 여백을 줌 */
+  .app { max-width:430px; margin:0 auto; min-height:100vh; padding-left:env(safe-area-inset-left); padding-right:env(safe-area-inset-right); padding-bottom:calc(84px + env(safe-area-inset-bottom)); }
+  header { padding:14px 16px; padding-top:calc(14px + env(safe-area-inset-top)); font-weight:700; font-size:18px; border-bottom:1px solid var(--line); }
   main { padding:12px 14px; }
   .card { background:var(--card); border-radius:12px; padding:12px; margin-bottom:10px; }
   .muted { color:var(--muted); font-size:13px; }
@@ -29,7 +30,7 @@
   .seg { display:flex; gap:6px; margin:8px 0; }
   .seg button { flex:1; }
   .thumb { width:48px; height:48px; border-radius:8px; background:var(--line); display:flex; align-items:center; justify-content:center; font-size:11px; color:var(--muted); flex-shrink:0; }
-  nav { position:fixed; bottom:0; left:50%; transform:translateX(-50%); width:100%; max-width:430px; background:var(--card); display:flex; border-top:1px solid var(--line); }
+  nav { position:fixed; bottom:0; left:50%; transform:translateX(-50%); width:100%; max-width:430px; background:var(--card); display:flex; border-top:1px solid var(--line); padding-bottom:env(safe-area-inset-bottom); }
   nav button { flex:1; border-radius:0; background:transparent; color:var(--muted); padding:10px 0; font-size:12px; min-height:56px; }
   nav button.on { color:var(--text); font-weight:700; }
   .tl { margin:6px 0 12px; }
@@ -171,7 +172,9 @@ const EN = {
   "알림 설정":"Notification settings", "유통기한 임박":"Expiring soon", "청소 당번":"Chore rota", "공용품 부족":"Low supplies", "켜짐":"On", "꺼짐":"Off",
   "앱을 열었을 때 보이는 알림 목록입니다. 휴대폰 푸시 알림은 서버를 붙인 뒤에 가능합니다.":"This list shows when you open the app. Phone push notifications will be possible after a server is connected.",
   "언어":"Language", "앱 안의 글자를 바꿔요. 이 기기에만 저장돼요.":"Changes the text in the app. Saved on this device only.",
-  "언어를 바꿔도 저장된 물건·음식 기록은 그대로 남아요. 이름이나 메모처럼 직접 적은 글은 번역되지 않아요.":"Changing the language keeps your saved items and food. Text you typed yourself, like names and notes, is not translated."
+  "언어를 바꿔도 저장된 물건·음식 기록은 그대로 남아요. 이름이나 메모처럼 직접 적은 글은 번역되지 않아요.":"Changing the language keeps your saved items and food. Text you typed yourself, like names and notes, is not translated.",
+  "혼자 쓰기":"Use it alone", "처음 화면으로":"Back to start", "먹고 버린 기록":"Eaten & thrown-away log", "먹음":"Eaten",
+  "이미 예약된 시간이 겹쳐요. 다른 시간을 골라 주세요":"That time overlaps a booking. Please pick another time."
 };
 // 표에 있는 문장이면 영어로 바꾸고, 없으면 그대로 둠 (한국어 모드에서는 아무것도 바꾸지 않음)
 function tr(s){ if (lang !== "en") return s; const k = String(s).trim(); return Object.prototype.hasOwnProperty.call(EN, k) ? String(s).replace(k, EN[k]) : s; }
@@ -210,12 +213,8 @@ function checkWeek(){
 const people = () => S.members.length ? S.members : [S.me || "나"];
 // 물건 주인 고르기: 집 멤버 목록 (혼자 쓸 때는 나 혼자)
 const ownerNames = () => [...new Set([...people(), S.me || "나"])];
-const OWNER_COLORS = ["#2e7d6b","#4b3f7a","#d08a2e","#b83a33","#3a6ea5","#7a5c3a"];
-// 이름마다 항상 같은 색이 나오도록 글자 번호로 색을 고름
-const ownerColor = n => OWNER_COLORS[[...(n || "나")].reduce((a, c) => a + c.charCodeAt(0), 0) % OWNER_COLORS.length];
 // 주인은 물건을 넣은 칸의 담당으로 정해짐. 담당이 없는 칸은 공용, 칸이 없으면 나
 const itemOwner = spaceId => { const s = spaceId ? spaceOf(spaceId) : null; if (!s) return S.me || "나"; const o = shelfOwners(s); return o.length ? o.join(", ") : "공용"; };
-const ownerSelect = (id, cur) => `<label>주인</label><select id="${id}">${ownerNames().map(n => `<option${n === cur ? " selected" : ""}>${esc(n)}</option>`).join("")}</select>`;
 // ===== 자동 배정 계산 =====
 // 날짜는 기준일(2026-11-02, 월요일)부터 센 날짜 번호로만 계산함. 저장된 교대 기록이 없어서 기기마다 같은 답이 나옴
 const ANCHOR = new Date(2026, 10, 2);
@@ -303,6 +302,7 @@ function startHTML(){
   return `<div class="card">
     <div class="sec" style="margin-top:0">지금 무엇을 하고 싶으세요?</div>
     <button class="big" onclick="showCreate()">우리 집 만들기</button>
+    <button class="ghost big" onclick="pickSolo()">혼자 쓰기</button>
     <button class="ghost big" onclick="showJoin()">초대 코드가 있어요</button>
     <button class="ghost big" onclick="go('settings')">설정</button>
   </div><div id="formArea"></div>`;
@@ -363,7 +363,6 @@ function saveMeAndInvite(){
   S.me = v; S.members = [v]; S.mode = "house"; S.houseName = S.houseName || "우리 집";
   S.inviteCode = S.inviteCode || makeCode(); save(); render();
 }
-function shareWhatsApp(){ window.open("https://wa.me/?text=" + encodeURIComponent("우리 집 앱 초대 코드: " + S.inviteCode), "_blank"); }
 // 홈의 "오늘" 카드: 흩어진 기능(청소, 음식, 공용품, 주방)을 한 화면에서 이어 줌
 function todayHTML(){
   const me = S.me || "나";
@@ -442,7 +441,13 @@ function stuffView(){
     <div class="seg">${[["location","장소별"],["name","이름별"],["recent","최근순"]].map(([k,l]) => `<button class="sm ${itemView===k?'':'ghost'}" onclick="itemView='${k}';render()">${l}</button>`).join("")}</div>
     <button class="big" onclick="showAddItem()">+ 물건/음식 등록</button>
     <div id="formArea"></div>
-    <div id="itemList">${itemListHTML()}</div>`;
+    <div id="itemList">${itemListHTML()}</div>${logHTML()}`;
+}
+// 먹고 버린 기록: 최근 것부터 30개. 누가 먹었는지는 보여 주지 않음
+function logHTML(){
+  const rows = [...S.log].sort((a,b) => b.at - a.at).slice(0, 30);
+  if (!rows.length) return "";
+  return `<div class="sec">먹고 버린 기록</div>` + rows.map(l => `<div class="card row" style="padding:8px 12px"><div style="flex:1"><b>${esc(l.name)}</b><div class="muted" style="font-size:12px">${fmtDay(l.at)}</div></div><span class="tag">${l.how}</span></div>`).join("");
 }
 // 같은 이름은 한 묶음으로. 묶음마다 머리(이름 · 총 개수)를 항상 보여 줘서 앞뒤 묶음이 섞여 보이지 않게 함
 function nameGroups(items){
@@ -662,6 +667,8 @@ function addBooking(){
   const start = new Date(`${date}T${st}`).getTime(), end = new Date(`${date}T${en}`).getTime();
   if (end <= start) { window.alert("끝 시간은 시작 시간보다 뒤여야 해요"); return; }
   if (end <= Date.now()) { window.alert("지난 시간은 예약할 수 없어요"); return; }
+  // 이미 있는 예약과 시간이 겹치면 막음 (끝 시간과 시작 시간이 맞닿는 것은 겹침이 아님)
+  if (S.bookings.some(b => start < b.end && b.start < end)) { window.alert("이미 예약된 시간이 겹쳐요. 다른 시간을 골라 주세요"); return; }
   S.bookings.push({id: uid(), who: S.me || "나", start, end});
   save(); render();
 }
@@ -993,6 +1000,7 @@ function settingsView(){
       <div class="card"><b>${esc(S.houseName || "내 물건과 음식")}</b></div>
       ${S.mode === "solo" ? `<button class="big" onclick="startInvite()">룸메이트 초대하기</button>` : inviteBox()}` : ""}
     <div class="muted">언어를 바꿔도 저장된 물건·음식 기록은 그대로 남아요. 이름이나 메모처럼 직접 적은 글은 번역되지 않아요.</div>
+    ${S.started ? `<button class="ghost big" onclick="goStart()">처음 화면으로</button>` : ""}
     <button class="ghost big" onclick="resetAll()">${resetArmed ? "한 번 더 누르면 모두 지워져요" : "데이터 초기화"}</button>
     <div id="formArea"></div>
     <button class="ghost big" onclick="go(S.started ? 'chores' : 'home')">← 돌아가기</button>`;
