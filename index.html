@@ -7,7 +7,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="theme-color" content="#f4f5f7">
-<title>우리 집 프로토타입 v17</title>
+<title>우리 집 프로토타입 v18</title>
 <style>
   :root { --main:#2e7d6b; --bg:#f4f5f7; --card:#ffffff; --text:#1d1d1f; --muted:#6e6e73; --warn:#d93a3a; --line:#e3e4e8; --chip:#ebecf0; --edge:#c9cad2; }
   * { box-sizing:border-box; }
@@ -569,10 +569,10 @@ function thumbHTML(i){
     ? `<img src="${i.photo}" alt="" onclick="showPhoto(this.src)" style="width:64px;height:64px;object-fit:cover;border-radius:8px;flex-shrink:0;cursor:zoom-in">`
     : `<div class="thumb" style="width:64px;height:64px">${en("사진 없음")}</div>`;
 }
-// 사진 고르기 버튼 두 개: 사진 찍기(카메라)와 사진 보관함(사진첩). 파일 선택 창은 띄우지 않음
+// 사진 고르기 버튼: 사진 보관함(사진첩)만. 카메라는 쓰지 않음
 function photoBtnsHTML(handler){
   const btn = (t, cap) => `<label style="display:inline-flex;align-items:center;min-height:44px;padding:0 12px;margin:0 8px 6px 0;border-radius:10px;background:var(--chip);cursor:pointer">${t}<input type="file" accept="image/*"${cap ? ` capture="${cap}"` : ""} onchange="${handler}" style="display:none"></label>`;
-  return btn("사진 찍기", "environment") + btn("사진 보관함", "");
+  return btn("사진 보관함", "");
 }
 // 물건 사진 크게 보기: 화면 전체에 띄우고, 누르면 닫힘. 목록을 다시 그려도 사라지지 않도록 화면 바깥(body)에 붙임
 function showPhoto(src){
