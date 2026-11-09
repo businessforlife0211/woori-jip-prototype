@@ -188,7 +188,7 @@ const EN = {
   "특정한 사람을 가리키는 말은 적을 수 없어요. 물건이나 칸, 상황으로 적어 주세요":"You can't write about a specific person. Write about items, spaces or situations.",
   "공간":"Spaces", "공용품":"Shared supplies", "+ 칸 추가":"+ Add space", "+ 공용품 추가":"+ Add supply",
   "여러 명을 골라도 돼요":"You can pick more than one person", "쓰는 사람":"Who uses it", "이름 바꾸기":"Rename", "칸 삭제":"Delete space",
-  "사진 바꾸기":"Change photo", "사진 올리기":"Add photo", "칸 이름":"Space name", "종류":"Type", "종류를 골라 주세요":"Please choose a type", "종류 없음":"No type", "종류 고르기":"Choose a type", "종류 미정":"Type not set",
+  "사진 바꾸기":"Change photo", "사진 올리기":"Add photo", "칸 이름":"Space name", "종류":"Type", "종류를 골라 주세요":"Please choose a type", "종류 없음":"No type", "종류 고르기":"Choose a type", "종류 미정":"Type not set", "냉장고":"Fridge",
   "이름 적기 (예: 욕실)":"Type name (e.g. bathroom)", "예: 희섭 칸, 찬장":"e.g. Hee-seop's space, cupboard",
   "냉장":"Fridge", "냉동":"Freezer", "가격 미입력":"No price", "상태 바꾸기":"Change status", "충분":"Enough", "적음":"Low", "없음":"None",
   "품목 이름":"Item name", "예: 주방세제":"e.g. washing-up liquid", "주방세제":"Washing-up liquid", "스펀지":"Sponge", "쓰레기봉투":"Bin bags",
@@ -823,7 +823,7 @@ function choresView(){
 // 공간(냉장고 칸, 찬장, 욕실 등): 이름, 종류(선택), 쓰는 사람(여러 명), 사진을 가짐
 // 번호(id)로 찾으므로 칸을 지워도 다른 칸의 정보가 엉키지 않음
 let shelfEdit = null, shelfRename = null;
-const TAGS = ["", "냉장", "냉동", "서랍", "기타"];
+const TAGS = ["냉장", "냉동", "서랍", "기타"];
 const shelfOwners = s => Array.isArray(s.owners) ? s.owners : (s.owner ? [s.owner] : []);
 const spaceOf = id => S.spaces.find(x => x.id === id);
 function startShelfEdit(id){ const s = spaceOf(id); if (!s) return; shelfEdit = {id, sel: shelfOwners(s).slice()}; shelfRename = null; render(); }
@@ -854,9 +854,9 @@ function saveShelfName(id){
 // 종류 고르기. '기타'를 고르면 직접 이름을 적을 수 있음 (예: 욕실, 세탁기)
 function tagSelect(elId, cur){
   const std = TAGS.includes(cur);
-  const selVal = !cur ? "" : (std ? cur : "기타");
+  const selVal = !cur ? "냉장" : (std ? cur : "기타");
   const custom = std || !cur ? "" : cur;
-  return `<span class="row wrap" style="gap:6px"><select id="${elId}" onchange="this.parentElement.querySelector('input').style.display = this.value === '기타' ? '' : 'none'">${TAGS.map(t => `<option value="${t}" ${t === selVal ? "selected" : ""}>${t || "종류 고르기"}</option>`).join("")}</select>
+  return `<span class="row wrap" style="gap:6px"><select id="${elId}" onchange="this.parentElement.querySelector('input').style.display = this.value === '기타' ? '' : 'none'">${TAGS.map(t => `<option value="${t}" ${t === selVal ? "selected" : ""}>${t === "냉장" ? "냉장고" : t}</option>`).join("")}</select>
     <input id="${elId}Custom" value="${esc(custom)}" placeholder="이름 적기 (예: 욕실)" style="${selVal === '기타' ? '' : 'display:none'};flex:1;min-width:120px"></span>`;
 }
 // 고른 종류를 저장할 글자로 바꿈. '기타'면 직접 적은 이름을 씀 (비어 있으면 '기타')
