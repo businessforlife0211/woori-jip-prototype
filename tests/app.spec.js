@@ -72,6 +72,7 @@ test("개인정보 안내가 설정과 시작 화면에서 열림", async ({ pag
   await page.evaluate(() => setLang("ko"));
   await page.click('[onclick="openPrivacy()"]');
   await expect(page.locator("#sheet")).toContainText("누가 볼 수 있나요");
+  await expect(page.locator('#sheet a[href^="mailto:"]')).toBeVisible();
 });
 
 test("두 기기 동기화 (운영 서버 사용)", async ({ browser }) => {

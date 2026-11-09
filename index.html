@@ -8,7 +8,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="theme-color" content="#F5F6F8">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
-<title>우리 집 프로토타입 v32</title>
+<title>우리 집 프로토타입 v33</title>
 <style>
   /* ===== 디자인 기준 (v31): 한눈에 보이게. 큰 굵은 제목, 넓은 여백, 테두리 없는 흰 카드, 중요한 것 하나만 진하게 ===== */
   :root { --main:#0E9F7E; --bg:#F5F6F8; --card:#ffffff; --text:#111418; --ink:#111418; --muted:#6B7280; --faint:#9AA1AB; --warn:#E5484D; --amber:#E8A13A; --line:#ECEEF1; --chip:#EEF0F3; --edge:#DDE1E6; --mint:#3DDC97; }
@@ -172,6 +172,7 @@
   .sync { font-weight:600; color:var(--main); }
   .sync.bad { color:var(--warn); }
   .privacy p { font-size:14px; line-height:1.6; color:var(--text); margin:4px 0 8px; }
+  .privacy a { color:var(--main); font-weight:600; word-break:break-all; }
   .privacy .sec { font-size:15px; margin:14px 0 4px; }
   .owner { display:inline-block; font-size:12px; padding:2px 8px; border-radius:999px; color:#fff; margin-left:4px; }
 </style>
@@ -1721,7 +1722,7 @@ function privacyHTML(){ return `<div class="privacy">${lang === "en" ? `
 <div class="sec">Who can see it</div>
 <p>Anyone with the invite code or link can see and change that house's data. Only send the link to people you live with. Photos can be seen by anyone who has their address.</p>
 <div class="sec">Deleting your data</div>
-<p>On this device: 'Reset data' in Settings.<br>House data and photos on the server: please ask the app operator.</p>` : `
+<p>On this device: 'Reset data' in Settings.<br>House data and photos on the server, or any other privacy question: email <a href="mailto:businessforlife0211@gmail.com">businessforlife0211@gmail.com</a> with your house name and invite code.</p>` : `
 <p><b>시험 버전이에요.</b> 계정과 비밀번호가 아직 없어요. 실명 대신 별명이나 방 번호를 쓰고, 민감한 정보(건강, 연락처, 금융 정보 등)는 적지 마세요.</p>
 <div class="sec">무엇을 저장하나요</div>
 <p>집 이름, 직접 적은 이름, 물건·음식, 청소 당번, 주방 사용·예약, 공간과 공용품, 알림판 글, 올린 사진이에요. 알림판 글에는 쓴 사람을 저장하지 않아요.</p>
@@ -1730,7 +1731,7 @@ function privacyHTML(){ return `<div class="privacy">${lang === "en" ? `
 <div class="sec">누가 볼 수 있나요</div>
 <p>초대 코드나 초대 링크를 가진 사람은 누구나 그 집의 데이터를 보고 바꿀 수 있어요. 링크는 함께 사는 사람에게만 보내세요. 사진은 주소를 아는 사람이면 볼 수 있어요.</p>
 <div class="sec">지우려면</div>
-<p>이 기기에서 지우기: 설정의 '데이터 초기화'.<br>서버에 있는 집 데이터와 사진 지우기: 앱 운영자에게 요청해 주세요.</p>`}</div>`; }
+<p>이 기기에서 지우기: 설정의 '데이터 초기화'.<br>서버에 있는 집 데이터와 사진 지우기, 그 밖의 개인정보 문의: <a href="mailto:businessforlife0211@gmail.com">businessforlife0211@gmail.com</a> 으로 집 이름과 초대 코드를 적어 보내 주세요.</p>`}</div>`; }
 function openPrivacy(){ openSheet(privacyHTML(), lang === "en" ? "Privacy" : "개인정보 안내"); }
 // ===== 화면 전환 =====
 function go(t){ tab = t; sheetState = null; window.scrollTo(0, 0); render(); }
