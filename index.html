@@ -30,9 +30,9 @@
   .seg { display:flex; gap:6px; margin:8px 0; }
   .seg button { flex:1; }
   .thumb { width:48px; height:48px; border-radius:8px; background:var(--line); display:flex; align-items:center; justify-content:center; font-size:11px; color:var(--muted); flex-shrink:0; }
-  /* 탭 바 좌우에 여백을 줘서 아이폰 모서리 곡선에 글자가 걸리지 않게 함 */
-  nav { position:fixed; bottom:0; left:50%; transform:translateX(-50%); width:100%; max-width:430px; background:var(--card); display:flex; border-top:1px solid var(--line); padding:0 16px env(safe-area-inset-bottom); box-sizing:border-box; }
-  nav button { flex:1; min-width:0; border-radius:0; background:transparent; color:var(--muted); padding:8px 0 10px; font-size:12px; min-height:56px; position:relative; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px; transition:color .15s; }
+  /* 탭 바는 화면 끝까지 채우고, 각 탭 안쪽 여백으로 글자가 아이폰 모서리 곡선에 걸리지 않게 함 */
+  nav { position:fixed; bottom:0; left:50%; transform:translateX(-50%); width:100%; max-width:430px; background:var(--card); display:flex; border-top:1px solid var(--line); padding:0 0 env(safe-area-inset-bottom); box-sizing:border-box; }
+  nav button { flex:1; min-width:0; border-radius:0; background:transparent; color:var(--muted); padding:8px 14px 10px; font-size:12px; min-height:56px; position:relative; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px; transition:color .15s; }
   nav .ico { display:flex; margin:0; font-size:0; transition:transform .12s; }
   nav .ico svg { width:24px; height:24px; fill:none; stroke:currentColor; stroke-width:1.8; stroke-linecap:round; stroke-linejoin:round; }
   nav .ico svg .f { fill:transparent; transition:fill .15s; }
