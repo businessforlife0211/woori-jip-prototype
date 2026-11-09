@@ -8,7 +8,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="theme-color" content="#F5F6F8">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
-<title>우리 집 프로토타입 v33</title>
+<title>우리 집 프로토타입 v34</title>
 <style>
   /* ===== 디자인 기준 (v31): 한눈에 보이게. 큰 굵은 제목, 넓은 여백, 테두리 없는 흰 카드, 중요한 것 하나만 진하게 ===== */
   :root { --main:#0E9F7E; --bg:#F5F6F8; --card:#ffffff; --text:#111418; --ink:#111418; --muted:#6B7280; --faint:#9AA1AB; --warn:#E5484D; --amber:#E8A13A; --line:#ECEEF1; --chip:#EEF0F3; --edge:#DDE1E6; --mint:#3DDC97; }
@@ -66,7 +66,7 @@
   .empty { padding:16px 0; color:var(--muted); font-size:14px; }
   .who { display:flex; align-items:center; gap:6px; font-size:14px; font-weight:600; color:var(--muted); flex-shrink:0; max-width:40%; }
   .who span:last-child { white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-  .who.me { color:var(--main); }
+  .who.me { color:var(--ink); }
   .av { width:26px; height:26px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:800; color:#fff; flex-shrink:0; }
   .pill { font-size:12px; font-weight:700; padding:4px 9px; border-radius:10px; background:var(--chip); color:var(--muted); flex-shrink:0; white-space:nowrap; }
   .pill.red { background:#FDECEC; color:var(--warn); }
@@ -1156,11 +1156,14 @@ function timelineHTML(){
   ];
   if (!rows.length) return `<div class="tl" id="tlBox"><div class="muted" style="font-size:14px">오늘은 예약도 사용 중인 사람도 없어요.</div></div>`;
   const body = rows.map(r => {
-    const l = pct(r.s), w = Math.max(0, pct(r.e) - l);
+    // 방금 시작한 사용도 보이게 사용 중 막대는 최소 1% 너비
+    const l = pct(r.s), w = Math.max(r.now ? 1 : 0, pct(r.e) - l);
     const mine = r.name === (S.me || "나");
+    // 이름 글자색 = 막대 색 (사용 중: 나 초록·남 주황, 예약: 파랑)
+    const nameColor = r.now ? (mine ? "var(--main)" : "#F5A524") : "#5B7CFA";
     const bar = w > 0 ? `<div class="${r.cls} ${mine ? "tl-mine" : "tl-other"}" style="left:${l}%;width:${w}%"></div>` : "";
     const mark = r.now ? `<div class="tl-now" style="left:${l}%"></div>` : "";
-    return `<div class="tl-row"><span class="tl-name">${esc(r.name)}</span><div class="tl-track">${bar}${mark}</div></div>`;
+    return `<div class="tl-row"><span class="tl-name" style="color:${nameColor}">${esc(r.name)}</span><div class="tl-track">${bar}${mark}</div></div>`;
   }).join("");
   // 2시간 간격으로 눈금을 찍어 시간 위치를 더 쉽게 읽을 수 있게 함
   const hours = [0, 6, 12, 18, 24].map(h => `<span style="left:${h / 24 * 100}%">${h}시</span>`).join("");
@@ -1460,7 +1463,7 @@ const AV_COLORS = ["#5B7CFA", "#E8A13A", "#D9577A", "#7B61FF", "#2BA3C7", "#8A6F
 function avatar(name){
   const n = String(name || "?"), me = n === (S.me || "나");
   const i = Math.max(0, people().indexOf(n));
-  return `<span class="av" style="background:${me ? "var(--main)" : AV_COLORS[i % AV_COLORS.length]}">${esc(([...n.trim()][0] || "?").toUpperCase())}</span>`;
+  return `<span class="av" style="background:${me ? "var(--ink)" : AV_COLORS[i % AV_COLORS.length]}">${esc(([...n.trim()][0] || "?").toUpperCase())}</span>`;
 }
 function whoHTML(name){
   if (!name) return `<div class="who"><span>${en("담당 없음")}</span></div>`;
@@ -1544,7 +1547,7 @@ function choresView(){
   const mon = weekStart(new Date()), end = new Date(mon); end.setDate(mon.getDate() + 6);
   const range = `${mon.getDate()}/${mon.getMonth() + 1} – ${end.getDate()}/${end.getMonth() + 1}`;
   const bookings = [...S.bookings].sort((a, b) => a.start - b.start).map(b => `<div class="li" style="cursor:default;min-height:48px;padding:8px 0">
-      <div class="main"><div class="t" style="font-size:15px">${fmtTime(b.start)} – ${fmtTime(b.end)}</div></div>${whoHTML(b.who)}<button class="x" onclick="cancelBooking(${b.id})" aria-label="취소">×</button></div>`).join("");
+      <div class="main"><div class="t" style="font-size:15px">${fmtTime(b.start)} – ${fmtTime(b.end)}</div></div>${b.who === (S.me || "나") ? `<div class="who me">${avatar(b.who)}</div>` : whoHTML(b.who)}<button class="x" onclick="cancelBooking(${b.id})" aria-label="취소">×</button></div>`).join("");
   return `<div id="formArea"></div>${invite}${kitchenHero()}${tilesHTML()}
     <div class="sech"><div class="sec">이번 주 청소</div><span class="note">${range}</span></div>
     <div class="list" id="choreList">${S.chores.map(choreRow).join("")}
