@@ -184,7 +184,7 @@ const EN = {
   "특정한 사람을 가리키는 말은 적을 수 없어요. 물건이나 칸, 상황으로 적어 주세요":"You can't write about a specific person. Write about items, spaces or situations.",
   "공간":"Spaces", "공용품":"Shared supplies", "+ 칸 추가":"+ Add space", "+ 공용품 추가":"+ Add supply",
   "여러 명을 골라도 돼요":"You can pick more than one person", "쓰는 사람":"Who uses it", "이름 바꾸기":"Rename", "칸 삭제":"Delete space",
-  "사진 바꾸기":"Change photo", "사진 올리기":"Add photo", "칸 이름":"Space name", "종류 (선택)":"Type (optional)", "종류 없음":"No type",
+  "사진 바꾸기":"Change photo", "사진 올리기":"Add photo", "칸 이름":"Space name", "종류":"Type", "종류를 골라 주세요":"Please choose a type", "종류 없음":"No type",
   "이름 적기 (예: 욕실)":"Type name (e.g. bathroom)", "예: 희섭 칸, 찬장":"e.g. Hee-seop's space, cupboard",
   "냉장":"Fridge", "냉동":"Freezer", "가격 미입력":"No price", "상태 바꾸기":"Change status", "충분":"Enough", "적음":"Low", "없음":"None",
   "품목 이름":"Item name", "예: 주방세제":"e.g. washing-up liquid", "주방세제":"Washing-up liquid", "스펀지":"Sponge", "쓰레기봉투":"Bin bags",
@@ -864,14 +864,17 @@ function readTag(elId){
 function showAddShelf(){
   document.getElementById("formArea").innerHTML = `<div class="card">
     <label>칸 이름</label><input id="shelfNew" placeholder="예: 희섭 칸, 찬장">
-    <label>종류 (선택)</label>${tagSelect("shelfTagNew", "")}
+    <label>종류</label>${tagSelect("shelfTagNew", "")}
     <div class="row" style="margin-top:8px"><button onclick="addShelf()">저장</button><button class="ghost" onclick="render()">취소</button></div></div>`;
   document.getElementById("shelfNew").focus();
 }
 function addShelf(){
   const name = document.getElementById("shelfNew").value.trim();
   if (!name) { window.alert("칸 이름을 적어 주세요"); return; }
-  S.spaces.push({id: "s" + Date.now().toString(36) + Math.random().toString(36).slice(2, 6), name, owners: [], tag: readTag("shelfTagNew")});
+  // 종류 없음이면 등록하지 않음 (칸은 냉장·냉동·서랍 같은 종류가 있어야 물건 칸으로 고를 수 있음)
+  const tag = readTag("shelfTagNew");
+  if (!tag) { window.alert(en("종류를 골라 주세요")); return; }
+  S.spaces.push({id: "s" + Date.now().toString(36) + Math.random().toString(36).slice(2, 6), name, owners: [], tag});
   save(); render();
 }
 // 칸을 지우면 그 칸의 담당과 사진도 함께 지워짐
