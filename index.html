@@ -7,7 +7,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="theme-color" content="#f4f5f7">
-<title>우리 집 프로토타입 v22</title>
+<title>우리 집 프로토타입 v23</title>
 <style>
   :root { --main:#2e7d6b; --bg:#f4f5f7; --card:#ffffff; --text:#1d1d1f; --muted:#6e6e73; --warn:#d93a3a; --line:#e3e4e8; --chip:#ebecf0; --edge:#c9cad2; }
   * { box-sizing:border-box; }
@@ -289,6 +289,20 @@ function matches(name, q){
 }
 // 가격 칸은 글자 입력이라서 읽을 때 숫자로 바꿈 (쉼표도 점으로 인정). 숫자가 아니면 없음으로 저장
 function priceOf(v){ const s = String(v || "").trim().replace(/,/g, ""); if (!s) return null; const n = Number(s); return isFinite(n) ? n : null; }
+// 금액 입력 칸: 숫자를 치는 동안 천 단위 쉼표를 자동으로 넣음 (소수점 뒤는 두 자리까지)
+function fmtPriceInput(el){
+  const raw = el.value, caret = el.selectionStart || 0;
+  const keep = raw.slice(0, caret).replace(/[^0-9.]/g, "").length; // 커서 왼쪽에 있던 숫자·점 개수
+  const s = raw.replace(/[^0-9.]/g, "");
+  const dot = s.indexOf(".");
+  const ip = (dot >= 0 ? s.slice(0, dot) : s).replace(/^0+(?=\d)/, "");
+  const dp = dot >= 0 ? "." + s.slice(dot + 1).replace(/\./g, "").slice(0, 2) : "";
+  const out = ip.replace(/\B(?=(\d{3})+(?!\d))/g, ",") + dp;
+  el.value = out;
+  let count = 0, pos = 0;
+  for (; pos < out.length && count < keep; pos++) if (/[0-9.]/.test(out[pos])) count++;
+  el.setSelectionRange(pos, pos);
+}
 // 금액 보여주기: 40000 → 40,000 (소수는 있을 때만 두 자리로)
 function moneyText(n){ return Number.isInteger(n) ? n.toLocaleString("en-GB") : n.toLocaleString("en-GB", {minimumFractionDigits: 2, maximumFractionDigits: 2}); }
 function rank(l){ const i = LOCATIONS.indexOf(l); return i < 0 ? 99 : i; }
@@ -541,7 +555,7 @@ function showAddItem(){
     <label>장소</label><select id="iloc" onchange="toggleOther('iloc','iother');refreshPlace('iloc','iother','ispaceWrap','i')">${locOptions()}</select>
     <input id="iother" placeholder="장소를 직접 적으세요 (예: 옷장 위 상자)" style="display:none">
     <div id="ispaceWrap">${placePick("방", {}, "i")}</div>
-    <label>샀을 때 가격 (£, 선택)</label><input id="iprice" type="text" inputmode="decimal" autocomplete="off">
+    <label>샀을 때 가격 (£, 선택)</label><input id="iprice" type="text" inputmode="decimal" autocomplete="off" oninput="fmtPriceInput(this)">
     <label>유통기한 (음식이면 입력, 선택)</label><input id="iexp" type="date" min="1000-01-01" max="9999-12-31"><button onclick="addItem()">저장</button></div>`;
 }
 // ===== 물건 사진 (이 기기 안에만 저장) =====
@@ -631,7 +645,7 @@ function showEditItem(id){
     <label>장소</label><select id="eloc" onchange="toggleOther('eloc','eother');refreshPlace('eloc','eother','espaceWrap','e')">${locOptions(isOther ? "기타" : i.location)}</select>
     <input id="eother" value="${esc(isOther ? i.location : "")}" placeholder="장소를 직접 적으세요" style="display:${isOther ? 'block' : 'none'}">
     <div id="espaceWrap">${placePick(i.location, {spaceId: i.spaceId, spot: i.spot}, "e")}</div>
-    <label>샀을 때 가격 (£, 선택)</label><input id="eprice" type="text" inputmode="decimal" autocomplete="off" value="${i.price != null ? moneyText(i.price) : ""}">
+    <label>샀을 때 가격 (£, 선택)</label><input id="eprice" type="text" inputmode="decimal" autocomplete="off" oninput="fmtPriceInput(this)" value="${i.price != null ? moneyText(i.price) : ""}">
     <label>유통기한 (음식이면 입력, 선택)</label><input id="eexp" type="date" min="1000-01-01" max="9999-12-31" value="${i.expiry || ""}">
     <div class="row"><button onclick="saveItem(${id})">저장</button><button class="ghost" onclick="render()">취소</button></div></div>`;
   document.getElementById("formArea").scrollIntoView({block: "center"});
@@ -1020,7 +1034,7 @@ function cycleSupply(id){ const s = S.supplies.find(x => x.id === id); const ord
 function showAddSupply(){
   document.getElementById("formArea").innerHTML = `<div class="card">
     <label>품목 이름</label><input id="sname" placeholder="예: 주방세제">
-    <label>샀을 때 가격 (£, 선택)</label><input id="sprice" type="text" inputmode="decimal" autocomplete="off">
+    <label>샀을 때 가격 (£, 선택)</label><input id="sprice" type="text" inputmode="decimal" autocomplete="off" oninput="fmtPriceInput(this)">
     <label>구매일 (선택)</label><input id="sdate" type="date">
     <button onclick="addSupply()">저장</button></div>`;
 }
@@ -1029,7 +1043,7 @@ function showEditSupply(id){
   const s = S.supplies.find(x => x.id === id); if (!s) return;
   document.getElementById("formArea").innerHTML = `<div class="card">
     <label>품목 이름</label><input id="sname" value="${esc(s.name)}">
-    <label>샀을 때 가격 (£, 선택)</label><input id="sprice" type="text" inputmode="decimal" autocomplete="off" value="${s.price != null ? moneyText(s.price) : ""}">
+    <label>샀을 때 가격 (£, 선택)</label><input id="sprice" type="text" inputmode="decimal" autocomplete="off" oninput="fmtPriceInput(this)" value="${s.price != null ? moneyText(s.price) : ""}">
     <label>구매일 (선택)</label><input id="sdate" type="date" min="1000-01-01" max="9999-12-31" value="${s.date || ""}">
     <div class="row" style="margin-top:8px"><button onclick="saveSupply(${id})">저장</button><button class="ghost" onclick="render()">취소</button></div></div>`;
   const box = document.getElementById("sname"); box.focus(); box.scrollIntoView({block: "center"});
