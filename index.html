@@ -7,7 +7,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="theme-color" content="#f4f5f7">
-<title>우리 집 프로토타입 v18</title>
+<title>우리 집 프로토타입 v19</title>
 <style>
   :root { --main:#2e7d6b; --bg:#f4f5f7; --card:#ffffff; --text:#1d1d1f; --muted:#6e6e73; --warn:#d93a3a; --line:#e3e4e8; --chip:#ebecf0; --edge:#c9cad2; }
   * { box-sizing:border-box; }
@@ -28,6 +28,7 @@
   button.sm { min-height:44px; padding:10px 12px; font-size:14px; }
   input, select { font:inherit; width:100%; min-height:44px; padding:10px; border:1px solid var(--edge); border-radius:10px; margin:4px 0 10px; background:#fff; color:var(--text); }
   input[type=checkbox] { width:22px; height:22px; margin:0; flex-shrink:0; }
+  input[type=date], input[type=time], input[type=number] { -webkit-appearance:none; appearance:none; min-width:0; max-width:100%; display:block; }
   label { font-size:14px; font-weight:600; }
   .tag { display:inline-block; font-size:12px; padding:2px 8px; border-radius:999px; background:#ece8f8; color:#4b3f7a; margin-left:4px; }
   .ico { display:block; font-size:20px; line-height:1; margin-bottom:3px; }
@@ -531,7 +532,7 @@ function renderItemList(){ document.getElementById("itemList").innerHTML = itemL
 function showAddItem(){
   photoPick = null;
   document.getElementById("formArea").innerHTML = `<div class="card">
-    <label>사진 (선택)</label>${photoBtnsHTML("pickItemPhoto(this)")}
+    <label>사진 (선택)</label><div style="margin:4px 0 12px">${photoBtnsHTML("pickItemPhoto(this)")}</div>
     <label>이름</label><input id="iname" placeholder="예: 쌀, 충전기">
     <label>장소</label><select id="iloc" onchange="toggleOther('iloc','iother');refreshPlace('iloc','iother','ispaceWrap','i')">${locOptions()}</select>
     <input id="iother" placeholder="장소를 직접 적으세요 (예: 옷장 위 상자)" style="display:none">
