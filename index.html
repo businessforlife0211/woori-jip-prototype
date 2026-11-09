@@ -6,71 +6,172 @@
 <!-- 홈 화면 앱으로 열 때 상태 표시줄 아래에서 내용이 시작되도록 함 -->
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<meta name="theme-color" content="#f4f5f7">
-<title>우리 집 프로토타입 v30</title>
+<meta name="theme-color" content="#F5F6F8">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<title>우리 집 프로토타입 v31</title>
 <style>
-  :root { --main:#2e7d6b; --bg:#f4f5f7; --card:#ffffff; --text:#1d1d1f; --muted:#6e6e73; --warn:#d93a3a; --line:#e3e4e8; --chip:#ebecf0; --edge:#c9cad2; }
+  /* ===== 디자인 기준 (v31): 한눈에 보이게. 큰 굵은 제목, 넓은 여백, 테두리 없는 흰 카드, 중요한 것 하나만 진하게 ===== */
+  :root { --main:#0E9F7E; --bg:#F5F6F8; --card:#ffffff; --text:#111418; --ink:#111418; --muted:#6B7280; --faint:#9AA1AB; --warn:#E5484D; --amber:#E8A13A; --line:#ECEEF1; --chip:#EEF0F3; --edge:#DDE1E6; --mint:#3DDC97; }
   * { box-sizing:border-box; }
-  body { margin:0; font-family:-apple-system,"Apple SD Gothic Neo","Noto Sans KR",sans-serif; background:var(--bg); color:var(--text); }
+  body { margin:0; font-family:"Pretendard",-apple-system,"Apple SD Gothic Neo","Noto Sans KR",sans-serif; background:var(--bg); color:var(--text); letter-spacing:-0.2px; -webkit-font-smoothing:antialiased; }
   /* 아이폰 화면 모서리와 아래 홈 막대에 글자가 가려지지 않도록 안전 영역만큼 여백을 줌 */
-  .app { max-width:430px; margin:0 auto; min-height:100vh; padding-left:env(safe-area-inset-left); padding-right:env(safe-area-inset-right); padding-bottom:calc(84px + env(safe-area-inset-bottom)); }
-  header { padding:14px 16px; padding-top:calc(14px + env(safe-area-inset-top)); font-weight:700; font-size:18px; border-bottom:1px solid var(--line); }
-  main { padding:12px 14px; }
-  .card { background:var(--card); border-radius:12px; padding:12px; margin-bottom:10px; }
+  .app { max-width:430px; margin:0 auto; min-height:100vh; padding-left:env(safe-area-inset-left); padding-right:env(safe-area-inset-right); padding-bottom:calc(96px + env(safe-area-inset-bottom)); }
+  /* 머리: 위에 작은 줄(집 이름 · 인원 · 저장 상태 + 버튼), 아래에 큰 화면 제목 */
+  header { padding:14px 18px 4px; padding-top:calc(14px + env(safe-area-inset-top)); }
+  .hdr-top { display:flex; align-items:center; justify-content:space-between; gap:8px; min-height:40px; }
+  .hdr-meta { font-size:14px; font-weight:600; color:var(--muted); min-width:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .hdr-btns { display:flex; gap:8px; flex-shrink:0; }
+  .hbtn { min-height:38px; height:38px; padding:0 13px; border-radius:19px; background:var(--card); color:var(--ink); font-size:13px; font-weight:700; display:flex; align-items:center; gap:5px; box-shadow:0 1px 2px rgba(17,20,24,.06); }
+  .hbtn svg { width:18px; height:18px; fill:none; stroke:currentColor; stroke-width:1.9; stroke-linecap:round; stroke-linejoin:round; }
+  .hdr-title { font-size:28px; font-weight:800; letter-spacing:-0.9px; margin:4px 0 6px; }
+  main { padding:6px 16px 12px; }
+  .card { background:var(--card); border-radius:18px; padding:16px; margin-bottom:10px; box-shadow:0 1px 2px rgba(17,20,24,.04); }
   .muted { color:var(--muted); font-size:13px; }
   .warn { color:var(--warn); }
   .row { display:flex; align-items:center; gap:8px; }
   .wrap { flex-wrap:wrap; }
-  .sec { font-weight:700; margin:14px 2px 6px; font-size:15px; }
-  button { font:inherit; min-height:44px; border:none; border-radius:10px; padding:10px 14px; background:var(--main); color:#fff; cursor:pointer; }
-  button.ghost { background:var(--chip); color:var(--text); }
-  button.big { width:100%; margin:6px 0; }
-  button.sm { min-height:44px; padding:10px 12px; font-size:14px; }
-  input, select { font:inherit; width:100%; min-height:44px; padding:10px; border:1px solid var(--edge); border-radius:10px; margin:4px 0 10px; background:#fff; color:var(--text); }
-  input[type=checkbox] { width:22px; height:22px; margin:0; flex-shrink:0; }
+  .sec { font-weight:800; margin:24px 2px 10px; font-size:19px; letter-spacing:-0.5px; }
+  .sech { display:flex; align-items:baseline; justify-content:space-between; gap:8px; margin:24px 2px 10px; }
+  .sech .sec { margin:0; }
+  .sech .act { font-size:14px; font-weight:700; color:var(--main); background:none; min-height:0; padding:4px 0; }
+  .sech .note { font-size:13px; color:var(--muted); font-weight:600; }
+  button { font:inherit; font-weight:700; letter-spacing:-0.2px; min-height:46px; border:none; border-radius:14px; padding:10px 16px; background:var(--ink); color:#fff; cursor:pointer; -webkit-tap-highlight-color:transparent; }
+  button:active { opacity:.85; }
+  button.ghost { background:var(--chip); color:var(--text); font-weight:600; }
+  button.big { width:100%; margin:6px 0; min-height:52px; font-size:16px; }
+  button.sm { min-height:40px; padding:8px 14px; font-size:14px; border-radius:12px; }
+  button.danger { background:#FDECEC; color:var(--warn); }
+  input, select { font:inherit; width:100%; min-height:46px; padding:10px 12px; border:1px solid var(--edge); border-radius:14px; margin:4px 0 12px; background:#fff; color:var(--text); }
+  input:focus, select:focus { outline:none; border-color:var(--ink); box-shadow:0 0 0 3px rgba(17,20,24,.08); }
+  /* 체크 칸: 둥근 네모, 누르면 초록으로 채워지고 흰 체크 */
+  input[type=checkbox] { -webkit-appearance:none; appearance:none; width:24px; height:24px; min-height:0; padding:0; margin:0; flex-shrink:0; border:2px solid #CDD2D8; border-radius:8px; background:#fff; display:grid; place-content:center; cursor:pointer; }
+  input[type=checkbox]:checked { background:var(--main); border-color:var(--main); }
+  input[type=checkbox]:checked::after { content:""; width:6px; height:11px; border:solid #fff; border-width:0 2.5px 2.5px 0; transform:translate(0,-1px) rotate(45deg); }
   input[type=date], input[type=time], input[type=number] { -webkit-appearance:none; appearance:none; min-width:0; max-width:100%; display:block; }
-  label { font-size:14px; font-weight:600; }
-  .tag { display:inline-block; font-size:12px; padding:2px 8px; border-radius:999px; background:#ece8f8; color:#4b3f7a; margin-left:4px; }
+  label { font-size:14px; font-weight:700; }
+  .tag { display:inline-block; font-size:12px; font-weight:700; padding:1px 7px; border-radius:6px; background:#E7F6F1; color:#0B7A61; margin-left:4px; }
   .ico { display:block; font-size:20px; line-height:1; margin-bottom:3px; }
-  .seg { display:flex; gap:6px; margin:8px 0; }
+  .seg { display:flex; gap:6px; margin:4px 0 10px; }
   .seg button { flex:1; }
-  .thumb { width:48px; height:48px; border-radius:8px; background:var(--line); display:flex; align-items:center; justify-content:center; font-size:11px; color:var(--muted); flex-shrink:0; }
-  /* 탭 바는 화면 끝까지 채우고, 각 탭 안쪽 여백으로 글자가 아이폰 모서리 곡선에 걸리지 않게 함 */
-  nav { position:fixed; bottom:0; left:50%; transform:translateX(-50%); width:100%; max-width:430px; background:var(--card); display:flex; border-top:1px solid var(--line); padding:0 0 env(safe-area-inset-bottom); box-sizing:border-box; }
-  nav button { flex:1; min-width:0; border-radius:0; background:transparent; color:var(--muted); padding:8px 14px 4px; font-size:12px; min-height:56px; position:relative; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px; transition:color .15s; }
-  nav .ico { display:flex; margin:0; font-size:0; transition:transform .12s; }
-  nav .ico svg { width:24px; height:24px; fill:none; stroke:currentColor; stroke-width:1.8; stroke-linecap:round; stroke-linejoin:round; }
-  nav .ico svg .f { fill:transparent; transition:fill .15s; }
-  nav button:active .ico { transform:scale(.86); }
-  nav button.on { color:var(--main); font-weight:700; }
-  nav button.on .ico svg .f { fill:var(--main); }
-  nav button.on .ico svg path:not(.f) { stroke:#fff; }
-  nav button.on::before { content:""; position:absolute; top:-1px; left:30%; right:30%; height:3px; border-radius:0 0 3px 3px; background:var(--main); animation:tabBar .28s ease-out; }
-  /* 탭을 누르면 아이콘이 톡 튀고, 위쪽 줄이 가운데에서 펼쳐짐. 탭을 바꿀 때마다 화면이 다시 그려지므로 매번 재생됨 */
-  @keyframes tabPop { 0% { transform:scale(.7); } 55% { transform:scale(1.18); } 100% { transform:scale(1); } }
-  @keyframes tabBar { from { left:50%; right:50%; } to { left:30%; right:30%; } }
-  nav button.on .ico { animation:tabPop .36s cubic-bezier(.2,.8,.3,1.2); }
-  @media (prefers-reduced-motion: reduce) { nav button.on .ico, nav button.on::before { animation:none; } }
-  .tl { margin:6px 0 12px; }
-  .tl-bar { position:relative; height:22px; background:var(--chip); border-radius:8px; overflow:hidden; }
-  .tl-book, .tl-use { position:absolute; top:0; bottom:0; }
-  /* 내 사용 중은 초록, 다른 사람 사용 중은 주황, 예약은 누가 했든 보라 */
-  .tl-use { background:#2e7d6b; }
-  .tl-use.tl-other { background:#d08a2e; }
-  /* 예약은 연보라 줄무늬 + 테두리로 그려서, 실제 사용 중(진한 초록 단색)과 색과 모양 둘 다 다르게 보이게 함 */
-  .tl-book { background:repeating-linear-gradient(45deg, #d9d2f0 0 5px, #b9aee0 5px 10px); box-shadow: inset 0 0 0 1.5px #4b3f7a; }
-  .tl-now { position:absolute; top:0; bottom:0; width:2px; background:var(--text); }
-  .tl-hours { position:relative; height:16px; font-size:11px; color:var(--muted); margin-top:2px; }
-  .tl-hours span { position:absolute; transform:translateX(-50%); }
-  .tl-row { display:flex; align-items:center; gap:6px; margin:4px 0; }
-  .tl-name { width:56px; flex-shrink:0; font-size:12px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-  .tl-track { position:relative; flex:1; height:14px; background:var(--chip); border-radius:6px; overflow:hidden; }
-  .tl-axis { margin-left:62px; }
-  .sync { display:block; font-size:12px; font-weight:400; color:var(--muted); margin-top:2px; }
-  .sync.bad { color:var(--warn); font-weight:600; }
+  .thumb { width:46px; height:46px; border-radius:12px; background:var(--chip); display:flex; align-items:center; justify-content:center; font-size:10px; color:var(--faint); flex-shrink:0; }
+  /* 목록: 흰 카드 하나 안에 줄을 나눠서 보여 줌 */
+  .list { background:var(--card); border-radius:18px; padding:2px 14px; margin-bottom:10px; box-shadow:0 1px 2px rgba(17,20,24,.04); }
+  .li { display:flex; align-items:center; gap:12px; padding:12px 0; border-bottom:1px solid var(--line); min-height:56px; cursor:pointer; }
+  .li:last-child { border-bottom:none; }
+  .li .main { flex:1; min-width:0; }
+  .li .t { font-size:16px; font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .li .t.done { color:var(--faint); text-decoration:line-through; font-weight:500; }
+  .li .m { font-size:13px; color:var(--muted); margin-top:2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .li .add { color:var(--main); font-weight:700; font-size:15px; }
+  .empty { padding:16px 0; color:var(--muted); font-size:14px; }
+  .who { display:flex; align-items:center; gap:6px; font-size:14px; font-weight:600; color:var(--muted); flex-shrink:0; max-width:40%; }
+  .who span:last-child { white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .who.me { color:var(--main); }
+  .av { width:26px; height:26px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:800; color:#fff; flex-shrink:0; }
+  .pill { font-size:12px; font-weight:700; padding:4px 9px; border-radius:10px; background:var(--chip); color:var(--muted); flex-shrink:0; white-space:nowrap; }
+  .pill.red { background:#FDECEC; color:var(--warn); }
+  .pill.amber { background:#FDF3E2; color:#B7791F; }
+  .pill.green { background:#E7F6F1; color:#0B7A61; }
+  .dot { width:9px; height:9px; border-radius:50%; flex-shrink:0; }
+  /* 주방 상태 카드: 화면의 중심 */
+  .hero { background:var(--ink); color:#fff; border-radius:22px; padding:18px; }
+  .hero .lab { font-size:13px; color:#9BA3AE; font-weight:600; }
+  .hero .st { display:flex; align-items:center; gap:8px; font-size:24px; font-weight:800; letter-spacing:-0.6px; margin:4px 0 2px; }
+  .hero .st .dot { width:10px; height:10px; background:var(--mint); box-shadow:0 0 0 4px rgba(61,220,151,.18); }
+  .hero .st .dot.busy { background:#F5A524; box-shadow:0 0 0 4px rgba(245,165,36,.2); }
+  .hero .sub { font-size:13px; color:#9BA3AE; }
+  .hero .hrow { display:flex; align-items:flex-end; justify-content:space-between; gap:10px; }
+  .hero button { background:var(--mint); color:#06130D; border-radius:22px; min-height:44px; padding:0 18px; flex-shrink:0; }
+  .hero button.end { background:#fff; color:var(--ink); }
+  .hero .users { margin-top:12px; border-top:1px solid rgba(255,255,255,.1); padding-top:8px; }
+  .hero .u { display:flex; align-items:center; gap:8px; font-size:14px; padding:4px 0; }
+  .hero .u b { font-weight:700; }
+  .hero .u span { color:#9BA3AE; flex:1; }
+  .hero .u button { min-height:30px; height:30px; padding:0 10px; font-size:12px; background:rgba(255,255,255,.12); color:#fff; }
+  .hero .ask { color:#FFB4B4; font-size:13px; margin-top:6px; }
+  /* 작은 상태 칸 3개 */
+  .tiles { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:8px; margin:10px 0 0; }
+  .tile { background:var(--card); border-radius:18px; padding:12px; cursor:pointer; box-shadow:0 1px 2px rgba(17,20,24,.04); min-width:0; }
+  .tile .lab { font-size:12px; color:var(--muted); font-weight:600; display:flex; align-items:center; gap:5px; }
+  .tile .lab .dot { width:7px; height:7px; }
+  .tile .v { font-size:16px; font-weight:800; margin-top:6px; letter-spacing:-0.4px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .tile .v.none { color:var(--faint); font-weight:600; }
+  .tile .s { font-size:12px; color:var(--faint); margin-top:1px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  /* 초대 안내 줄 */
+  .invite-strip { display:flex; align-items:center; gap:10px; background:#E7F6F1; color:#0B5F4B; border-radius:16px; padding:12px 14px; margin-bottom:10px; font-size:14px; font-weight:600; }
+  .invite-strip div { flex:1; }
+  .invite-strip button { min-height:36px; padding:6px 14px; border-radius:18px; background:var(--main); font-size:13px; }
   .invite-mini { display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
-  .invite-mini .code { font-weight:700; letter-spacing:2px; }
-.owner { display:inline-block; font-size:12px; padding:2px 8px; border-radius:999px; color:#fff; margin-left:4px; }
+  .invite-mini .code { font-weight:800; letter-spacing:2px; color:var(--main); }
+  /* 물건: 검색, 필터 칩, 떠 있는 + 버튼 */
+  .search { padding-left:40px; background:#fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='18' height='18' viewBox='0 0 24 24' fill='none' stroke='%239AA1AB' stroke-width='2' stroke-linecap='round'%3E%3Ccircle cx='11' cy='11' r='7'/%3E%3Cpath d='M20 20l-3.5-3.5'/%3E%3C/svg%3E") no-repeat 14px center; border-color:transparent; box-shadow:0 1px 2px rgba(17,20,24,.04); margin:0; }
+  .chips { display:flex; gap:6px; margin:10px 0 2px; overflow-x:auto; scrollbar-width:none; }
+  .chips::-webkit-scrollbar { display:none; }
+  .chip { min-height:34px; height:34px; padding:0 13px; border-radius:17px; background:var(--card); color:var(--muted); font-size:14px; font-weight:600; flex-shrink:0; box-shadow:0 1px 2px rgba(17,20,24,.04); }
+  .chip.on { background:var(--ink); color:#fff; }
+  .chip i { font-style:normal; color:var(--warn); font-weight:800; margin-left:3px; }
+  .chip.on i { color:#FF9EA1; }
+  .fab { position:fixed; right:max(18px, calc(50% - 197px)); bottom:calc(88px + env(safe-area-inset-bottom)); width:58px; height:58px; min-height:58px; border-radius:29px; padding:0; font-size:30px; font-weight:400; line-height:1; box-shadow:0 8px 20px rgba(17,20,24,.28); z-index:10; }
+  .ph { width:46px; height:46px; border-radius:12px; object-fit:cover; flex-shrink:0; cursor:zoom-in; }
+  /* 알림판 입력: 입력 칸과 보내기 버튼 한 줄 */
+  .post { background:var(--card); border-radius:18px; padding:6px 6px 6px 14px; display:flex; align-items:center; gap:6px; box-shadow:0 1px 2px rgba(17,20,24,.04); }
+  .post input { border:none; margin:0; padding:8px 0; min-height:40px; box-shadow:none; }
+  .post .send { width:42px; height:42px; min-height:42px; border-radius:21px; padding:0; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+  .post .send svg { width:18px; height:18px; fill:none; stroke:#fff; stroke-width:2.2; stroke-linecap:round; stroke-linejoin:round; }
+  .post-opt { display:flex; align-items:center; gap:8px; margin:8px 2px 0; }
+  .post-opt select { width:auto; min-height:34px; padding:4px 10px; margin:0; font-size:13px; border-radius:10px; }
+  .post-opt input { margin:0; min-height:34px; padding:4px 10px; font-size:13px; }
+  .hint { font-size:12px; color:var(--faint); margin:8px 4px 0; }
+  .x { min-height:30px; height:30px; width:30px; padding:0; border-radius:15px; background:var(--chip); color:var(--muted); font-size:15px; font-weight:600; flex-shrink:0; }
+  /* 아래에서 올라오는 시트: 수정·삭제·설정처럼 자주 안 쓰는 버튼은 여기로 */
+  #sheet { position:fixed; inset:0; z-index:60; }
+  .sheet-bg { position:absolute; inset:0; background:rgba(17,20,24,.45); animation:fadeIn .15s ease-out; }
+  .sheet { position:absolute; left:50%; transform:translateX(-50%); bottom:0; width:100%; max-width:430px; max-height:88vh; overflow:auto; background:var(--card); border-radius:22px 22px 0 0; padding:8px 18px calc(22px + env(safe-area-inset-bottom)); animation:sheetUp .2s ease-out; }
+  .sheet-bar { display:flex; align-items:center; justify-content:space-between; position:sticky; top:-8px; background:var(--card); padding:8px 0 6px; z-index:1; }
+  .sheet-bar::before { content:""; position:absolute; left:50%; top:2px; width:36px; height:4px; margin-left:-18px; border-radius:2px; background:var(--edge); }
+  .sheet-bar b { font-size:18px; font-weight:800; letter-spacing:-0.4px; }
+  .sheet .card { box-shadow:none; padding:4px 0; margin-bottom:6px; }
+  .sheet .sec { font-size:16px; margin:16px 0 8px; }
+  .sheet .big-ph { width:100%; max-height:260px; object-fit:cover; border-radius:16px; margin:4px 0 10px; cursor:zoom-in; }
+  .kv { display:flex; justify-content:space-between; gap:10px; padding:10px 0; border-bottom:1px solid var(--line); font-size:15px; }
+  .kv span:first-child { color:var(--muted); }
+  .kv span:last-child { font-weight:600; text-align:right; }
+  @keyframes sheetUp { from { transform:translate(-50%, 30px); opacity:.6; } to { transform:translate(-50%, 0); opacity:1; } }
+  @keyframes fadeIn { from { opacity:0; } to { opacity:1; } }
+  @media (prefers-reduced-motion: reduce) { .sheet, .sheet-bg { animation:none; } }
+  /* 탭 바 */
+  nav { position:fixed; bottom:0; left:50%; transform:translateX(-50%); width:100%; max-width:430px; background:#fff; display:flex; border-top:1px solid var(--line); padding:0 0 env(safe-area-inset-bottom); box-sizing:border-box; z-index:20; }
+  nav button { flex:1; min-width:0; border-radius:0; background:transparent; color:#8A919B; padding:8px 6px 6px; font-size:11px; font-weight:600; min-height:60px; position:relative; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:3px; }
+  nav button:active { opacity:1; }
+  nav .ico { display:flex; margin:0; font-size:0; position:relative; transition:transform .12s; }
+  nav .ico svg { width:24px; height:24px; fill:none; stroke:currentColor; stroke-width:1.8; stroke-linecap:round; stroke-linejoin:round; }
+  nav .ico svg .f { fill:transparent; }
+  nav button:active .ico { transform:scale(.88); }
+  nav button.on { color:var(--ink); font-weight:700; }
+  nav button.on .ico svg .f { fill:var(--ink); }
+  nav button.on .ico svg path:not(.f) { stroke:#fff; }
+  .badge { position:absolute; top:-5px; left:15px; min-width:17px; height:17px; padding:0 4px; border-radius:9px; background:var(--warn); color:#fff; font-size:10px; font-weight:800; display:flex; align-items:center; justify-content:center; }
+  /* 오늘 주방 시간표 */
+  .tl { background:var(--card); border-radius:18px; padding:14px; margin:0 0 10px; box-shadow:0 1px 2px rgba(17,20,24,.04); }
+  .tl-bar { position:relative; height:22px; background:var(--chip); border-radius:8px; overflow:hidden; }
+  .tl-book, .tl-use { position:absolute; top:0; bottom:0; border-radius:6px; }
+  /* 내 사용 중은 초록, 다른 사람 사용 중은 주황, 예약은 파랑 */
+  .tl-use { background:var(--main); }
+  .tl-use.tl-other { background:#F5A524; }
+  .tl-book { background:#5B7CFA; }
+  .tl-book.tl-mine { background:#9DB1FF; }
+  .tl-now { position:absolute; top:-2px; bottom:-2px; width:2px; background:var(--ink); }
+  .tl-hours { position:relative; height:16px; font-size:11px; color:var(--faint); margin-top:4px; }
+  .tl-hours span { position:absolute; transform:translateX(-50%); white-space:nowrap; }
+  .tl-hours span:first-child { transform:none; }
+  .tl-hours span:last-child { transform:translateX(-100%); }
+  .tl-row { display:flex; align-items:center; gap:8px; margin:6px 0; }
+  .tl-name { width:52px; flex-shrink:0; font-size:12px; font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .tl-track { position:relative; flex:1; height:16px; background:var(--chip); border-radius:6px; overflow:hidden; }
+  .tl-axis { margin-left:60px; }
+  .sync { font-weight:600; color:var(--main); }
+  .sync.bad { color:var(--warn); }
+  .owner { display:inline-block; font-size:12px; padding:2px 8px; border-radius:999px; color:#fff; margin-left:4px; }
 </style>
 </head>
 <body>
@@ -187,7 +288,7 @@ const EN = {
   "시연용: 이 기기 안에만 저장돼요. 룸메이트 기기에는 아직 보이지 않아요.":"Demo: saved on this device only. Not visible on your roommate's device yet.",
   "주방 예약":"Kitchen booking", "예약하기":"Book", "시작":"Start", "끝":"End", "예약이 없어요.":"No bookings.",
   "오늘은 예약도 사용 중인 사람도 없어요.":"No bookings or users today.",
-  "초록 = 내가 사용 중 · 주황 = 다른 사람 사용 중 · 보라 줄무늬 = 예약":"Green = me using · Orange = someone else · Striped purple = booked",
+  "초록 = 내가 사용 중 · 주황 = 다른 사람 · 파랑 = 예약":"Green = me using · Orange = someone else · Blue = booked",
   "시작과 끝 시간을 적어 주세요":"Please enter start and end times", "끝 시간은 시작 시간보다 뒤여야 해요":"End time must be after start time",
   "지난 시간은 예약할 수 없어요":"You can't book a past time", "내용을 적어 주세요":"Please write something",
   "특정한 사람을 가리키는 말은 적을 수 없어요. 물건이나 칸, 상황으로 적어 주세요":"You can't write about a specific person. Write about items, spaces or situations.",
@@ -198,8 +299,7 @@ const EN = {
   "인터넷 연결을 확인해 주세요":"Please check your internet connection.",
   "초대 코드를 다시 확인해 주세요":"Please check the invite code.",
   "링크 복사":"Copy link", "초대 링크 만들기":"Create invite link",
-  "우리 집 앱에 들어오세요. 아래 링크를 누르면 바로 들어와요 (앱 설치 필요 없음)":"Join our home app. Tap the link below to join right away (no app install needed).", "사진 찍기":"Take photo", "사진 보관함":"Photo library", "탭하면 닫혀요":"Tap to close", "구매일 (선택)":"Purchase date (optional)", "예: 우리 집":"e.g. Our home", "칸 이름":"Space name", "종류":"Type", "종류를 골라 주세요":"Please choose a type", "종류 없음":"No type", "종류 고르기":"Choose a type", "종류 미정":"Type not set", "냉장고":"Fridge",
-  "이름 적기 (예: 욕실)":"Type name (e.g. bathroom)", "예: 우상 칸, 찬장":"e.g. Alex's space, cupboard",
+  "우리 집 앱에 들어오세요. 아래 링크를 누르면 바로 들어와요 (앱 설치 필요 없음)":"Join our home app. Tap the link below to join right away (no app install needed).", "사진 찍기":"Take photo", "사진 보관함":"Photo library", "탭하면 닫혀요":"Tap to close", "구매일 (선택)":"Purchase date (optional)", "예: 우리 집":"e.g. Our home", "칸 이름":"Space name", "종류":"Type", "종류를 골라 주세요":"Please choose a type", "종류 없음":"No type", "종류 고르기":"Choose a type", "종류 미정":"Type not set", "이름 적기 (예: 욕실)":"Type name (e.g. bathroom)", "예: 우상 칸, 찬장":"e.g. Alex's space, cupboard",
   "냉장":"Fridge", "냉동":"Freezer", "가격 미입력":"No price", "상태 바꾸기":"Change status", "충분":"Enough", "적음":"Low", "없음":"None",
   "품목 이름":"Item name", "예: 주방세제":"e.g. washing-up liquid", "주방세제":"Washing-up liquid", "스펀지":"Sponge", "쓰레기봉투":"Bin bags",
   "1번 선반":"Shelf 1", "2번 선반":"Shelf 2", "3번 선반":"Shelf 3", "공용 칸":"Shared space",
@@ -214,13 +314,20 @@ const EN = {
   "혼자 쓰기":"Use it alone", "처음 화면으로":"Back to start", "먹고 버린 기록":"Eaten & thrown-away log", "먹음":"Eaten",
   "이미 예약된 시간이 겹쳐요. 다른 시간을 골라 주세요":"That time overlaps a booking. Please pick another time.",
   "기한 지남":"Expired", "오늘 만료":"Expires today", "내일 만료":"Expires tomorrow", "아직 안 함":"— not done yet", "청소":"Cleaning",
-  "지금 담당":"Assigned now", "내 청소":"My cleaning", "곧 만료":"Expiring soon", "부족":"Low", "오늘 할 일이 없어요 🎉":"Nothing to do today 🎉",
-  "바꾸면 담당, 물건 주인, 기록에 있던 내 이름도 같이 바뀌어요.":"Changing it also updates your name in chores, item owners and logs.",
+  "지금 담당":"Assigned now", "내 청소":"My cleaning", "곧 만료":"Expiring soon", "부족":"Low", "바꾸면 담당, 물건 주인, 기록에 있던 내 이름도 같이 바뀌어요.":"Changing it also updates your name in chores, item owners and logs.",
   "저장 중…":"Saving…", "저장됨":"Saved", "연결 안 됨 · 다시 시도 중":"Offline · retrying", "저장 안 됨":"Not saved",
   "사진이 너무 많아요. 사진을 지워 주세요":"too many photos, please delete some",
-  "룸메이트 초대":"Invite roommates", "코드":"Code", "공유하기":"Share", "링크 복사":"Copy link", "룸메이트 초대하기":"Invite roommates",
-  "룸메이트와 함께 쓰면 청소·주방이 같이 보여요":"Share chores and the kitchen with your roommates",
-  "바꾸고 참여하기":"Replace and join", "이미 같은 이름이 있어요. 이름 뒤에 방 번호를 붙여 주세요":"That name is already taken. Please add your room number.", "초대받은 집에 참여":"Join the house you were invited to"
+  "룸메이트 초대":"Invite roommates", "코드":"Code", "공유하기":"Share", "룸메이트와 함께 쓰면 청소·주방이 같이 보여요":"Share chores and the kitchen with your roommates",
+  "바꾸고 참여하기":"Replace and join",
+  "오늘 우리 집":"Today at home", "초대":"Invite", "닫기":"Close",
+  "비어 있어요":"Free now", "다음 예약":"Next booking", "예약 중":"Booked", "오늘 예약 없음":"No bookings today", "나":"Me",
+  "이번 차례":"Your turn", "이번 주 청소":"This week's chores", "청소 항목 추가":"Add a chore", "예약":"Book",
+  "다음 교대":"Next rotation", "정하는 방식":"How it's assigned", "이 청소 항목 삭제":"Delete this chore", "담당 바꾸기":"Change person",
+  "사용 시작을 누르고 2시간이 지나면 자동으로 끝나요":"Kitchen use ends automatically after 2 hours",
+  "아직 혼자예요. 룸메이트를 불러 보세요":"It's just you so far. Invite your roommates",
+  "전체":"All", "내 것":"Mine", "이름으로 찾기 (ㅅ, 쌀, rice)":"Search by name (e.g. rice)", "물건 추가":"Add item", "주인":"Owner", "가격":"Price", "유통기한":"Use by", "공용":"Shared", "공용품 추가":"Add supply", "공용품 수정":"Edit supply", "칸 추가":"Add space", "상태를 누르면 충분 → 적음 → 없음으로 바뀌어요":"Tap the status to switch Enough → Running low → None",
+  "챙길 것":"To check", "지금 챙길 것이 없어요":"Nothing to check right now", "내 차례":"Your turn", "익명 알림판":"Anonymous noticeboard", "이름은 남지 않아요":"No names are saved",
+  "사람 대신 물건·장소·상황으로 적어 주세요":"Write about things, places or situations, not people", "방금":"Just now", "이미 같은 이름이 있어요. 이름 뒤에 방 번호를 붙여 주세요":"That name is already taken. Please add your room number.", "초대받은 집에 참여":"Join the house you were invited to"
 };
 // 알림·상태처럼 글자를 조각내 만든 문장은 조각마다 이 도우미로 영어를 가져옴 (한국어 모드에서는 그대로)
 function en(k){ return lang === "en" && Object.prototype.hasOwnProperty.call(EN, k) ? EN[k] : k; }
@@ -263,7 +370,7 @@ function syncText(){
 }
 function updateSync(){
   const el = document.getElementById("sync"); if (!el) return;
-  el.textContent = syncText();
+  const t = syncText(); el.textContent = t ? "· " + t : "";
   el.className = "sync" + (syncState === "offline" || syncState === "failed" ? " bad" : "");
 }
 function sharedSnapshot(){ const o = {}; SHARED.forEach(k => { o[k] = S[k]; }); return o; }
@@ -650,6 +757,7 @@ async function makeInvite(){
   S.members = [...new Set([S.me, ...(S.members || [])])];
   if (!(await ensureServerHouse())) return;
   S.mode = "house"; save(); render();
+  openSheet(inviteBox(), "룸메이트 초대");
 }
 // 홈의 "오늘" 카드: 흩어진 기능(청소, 음식, 공용품, 주방)을 한 화면에서 이어 줌
 function todayHTML(){
@@ -680,7 +788,7 @@ function homeView(){
     ${solo ? `<button class="big" onclick="startInvite()">룸메이트 초대하기</button>` : inviteBox()}
     ${S.items.length ? "" : `<div class="card"><b>처음이라면</b>
       <div class="muted" style="margin-top:4px">"물건·음식" 탭에서 어디 뒀는지 적어 보세요. 사진은 선택이에요.</div></div>`}
-    ${kitchenHTML()}
+    ${kitchenHero()}
     <button class="ghost big" onclick="resetAll()">${resetArmed ? "한 번 더 누르면 모두 지워져요" : "데이터 초기화"}</button>`;
 }
 // 초대 카드: 코드 표시, 복사, 공유 창 (인스타 DM, 카카오톡 등 설치된 앱 선택 가능)
@@ -736,67 +844,6 @@ function resetAll(){
   resetArmed = false; localStorage.removeItem(KEY); S = structuredClone(DEF); tab = "home"; save(); render();
 }
 
-// ===== 2. 물건·음식 (찾기, 유통기한) =====
-// 물건과 음식을 한 목록으로 보여 줌 (유통기한이 있으면 음식으로 표시). 같은 항목이 두 번 나오지 않음
-function itemsView(){ return stuffView(); }
-function stuffView(){
-  const soon = S.items.filter(f => f.expiry && daysLeft(f.expiry) <= 1).length;
-  const banner = S.notify.food && soon ? `<div class="card warn">${lang === "en" ? `${soon} food item(s) expire tomorrow or have already expired.` : `내일 만료되거나 이미 지난 음식이 ${soon}개 있어요.`}</div>` : "";
-  return banner + `<input id="itemSearch" placeholder="이름 검색 (예: ㅅ, 쌀, rice)" value="${itemQuery}" oninput="itemQuery=this.value;renderItemList()">
-    <div class="seg">${[["location","장소별"],["name","이름별"],["recent","최근순"]].map(([k,l]) => `<button class="sm ${itemView===k?'':'ghost'}" onclick="itemView='${k}';render()">${l}</button>`).join("")}</div>
-    <button class="big" onclick="showAddItem()">+ 물건/음식 등록</button>
-    <div id="formArea"></div>
-    <div id="itemList">${itemListHTML()}</div>${logHTML()}`;
-}
-// 먹고 버린 기록: 최근 것부터 30개. 누가 먹었는지는 보여 주지 않음
-function logHTML(){
-  const rows = [...S.log].sort((a,b) => b.at - a.at).slice(0, 30);
-  if (!rows.length) return "";
-  return `<div class="sec">먹고 버린 기록</div>` + rows.map(l => `<div class="card row" style="padding:8px 12px"><div style="flex:1"><b>${esc(l.name)}</b><div class="muted" style="font-size:12px">${fmtDay(l.at)}</div></div><span class="tag">${l.how}</span></div>`).join("");
-}
-// 같은 이름은 한 묶음으로. 묶음마다 머리(이름 · 총 개수)를 항상 보여 줘서 앞뒤 묶음이 섞여 보이지 않게 함
-function nameGroups(items){
-  return [...new Set(items.map(i => i.name))].sort((a,b) => a.localeCompare(b,"ko")).map(n => {
-    const same = items.filter(i => i.name === n);
-    const total = same.reduce((a, i) => a + (i.qty || 1), 0);
-    return `<div class="sec">${esc(n)} · 총 ${total}개</div>` + same.map(itemRow).join("");
-  }).join("");
-}
-function itemListHTML(){
-  const list = S.items.filter(i => matches(i.name, itemQuery));
-  let body = "";
-  if (itemView === "location"){
-    // 기본 장소만 따로 묶고, 직접 적은 장소와 '기타'는 모두 '기타' 한 묶음에 모아 이름별로 보여 줌
-    const place = i => LOCATIONS.includes(i.location) ? i.location : "기타";
-    [...new Set(list.map(place))].sort((a,b) => rank(a) - rank(b)).forEach(loc => {
-      body += `<div class="sec">${loc}</div>` + nameGroups(list.filter(i => place(i) === loc));
-    });
-  } else if (itemView === "name") {
-    body = nameGroups(list);
-  } else {
-    body = [...list].sort((a,b) => b.id - a.id).map(itemRow).join("");
-  }
-  if(!S.items.length) body = `<div class="card muted">아직 등록한 물건이 없어요. 아래 + 버튼으로 추가해 보세요.</div>`;
-  else if(!list.length) body = `<div class="card muted">검색 결과가 없어요.</div>`;
-  return body;
-}
-function itemRow(i){
-  // 유통기한이 있는 항목은 음식으로 보고 남은 날짜와 먹었음·버림 버튼을 같이 보여 줌
-  let food = "";
-  if (i.expiry) {
-    const d = daysLeft(i.expiry);
-    food = `<div class="${d <= 3 ? 'warn' : ''}" style="font-size:13px">${dmy(i.expiry)} · ${d < 0 ? en("기한 지남") : d === 0 ? en("오늘 만료") : (lang === "en" ? d + " days left" : "남은 " + d + "일")}</div>
-      <div class="row wrap" style="margin-top:6px">
-        <button class="sm ghost" onclick="foodQty(${i.id},-1)">−</button>
-        <button class="sm ghost" onclick="foodQty(${i.id},1)">+</button>
-        <button class="sm" onclick="eatFood(${i.id})">먹었음</button>
-        <button class="sm ghost" onclick="throwFood(${i.id})">버림</button>
-      </div>`;
-  }
-  return `<div class="card row">${thumbHTML(i)}
-    <div style="flex:1"><b>${esc(i.name)}</b>${i.expiry ? ` <span class="tag">음식</span>` : ""}<div class="muted">${esc(i.location)}${placeName(i) ? ` · ${esc(placeName(i))}` : ""}${i.price != null ? ` · £${moneyText(i.price)}` : ""}</div>${food}</div>
-    <div style="display:flex;flex-direction:column;gap:6px"><button class="sm ghost" onclick="showEditItem(${i.id})">수정</button><button class="sm ghost" onclick="delItem(${i.id})">삭제</button></div></div>`;
-}
 // 검색어를 칠 때는 목록만 갱신해서 검색창과 키보드가 유지되도록 함
 function renderItemList(){ document.getElementById("itemList").innerHTML = itemListHTML(); }
 function showAddItem(){
@@ -910,7 +957,7 @@ function showEditItem(id){
   document.getElementById("formArea").scrollIntoView({block: "center"});
 }
 // 사진만 지우기 (물건은 그대로 둠)
-function removeItemPhoto(id){ const i = S.items.find(x => x.id === id); if (!i) return; delete i.photo; i.hasPhoto = false; save(); render(); showEditItem(id); }
+function removeItemPhoto(id){ const i = S.items.find(x => x.id === id); if (!i) return; delete i.photo; i.hasPhoto = false; save(); render(); if (!document.getElementById("sheet")) openSheet("", i.name); showEditItem(id); }
 async function saveItem(id){
   const i = S.items.find(x => x.id === id); if (!i) return;
   const name = document.getElementById("ename").value.trim();
@@ -968,7 +1015,7 @@ function chipsFor(kind, id, current){
 function pickFromBtn(btn, kind, id){ pickPending(kind, id, btn.dataset.name); }
 function assignBlock(kind, id, current){
   const isEditing = editing && editing.kind === kind && editing.id === id;
-  if (!isEditing) return `<div class="row" style="margin-top:8px"><button class="sm ghost" onclick="startEdit('${kind}',${id})">수정</button></div>`;
+  if (!isEditing) return `<div class="row" style="margin-top:8px"><button class="sm ghost" onclick="startEdit('${kind}',${id})">담당 바꾸기</button></div>`;
   return `<div class="row wrap" id="chips-${kind}-${id}" style="margin-top:8px">${chipsFor(kind, id, current)}</div>
         <div class="row" style="margin-top:8px"><button class="sm" onclick="confirmEdit()">확인</button><button class="sm ghost" onclick="cancelEdit()">취소</button></div>`;
 }
@@ -1031,18 +1078,6 @@ function cleanBookings(){
 }
 function fmtTime(t){ const d = new Date(t); return String(d.getHours()).padStart(2,"0") + ":" + String(d.getMinutes()).padStart(2,"0"); }
 function fmtDay(t){ return fmt(new Date(t)); }
-function bookingSection(){
-  const list = [...S.bookings].sort((a,b) => a.start - b.start).map(b => `<div class="card row">
-      <div style="flex:1"><b>${fmtTime(b.start)} ~ ${fmtTime(b.end)}</b><div class="muted">${b.who}</div></div>
-      <button class="sm ghost" onclick="cancelBooking(${b.id})">취소</button></div>`).join("");
-  return `<div class="sec">주방 예약</div>
-    <div class="card">
-      <div class="muted">${lang === "en" ? `As of today, ${fmtDay(Date.now())}` : `오늘 ${fmtDay(Date.now())} 기준`}</div>
-      <div style="display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:8px;overflow:hidden"><div style="min-width:0;overflow:hidden"><label>시작</label><input id="bstart" type="time" value="18:00" style="display:block;width:100%;max-width:100%;min-width:0;box-sizing:border-box;-webkit-appearance:none;appearance:none;font-size:16px;padding:10px 8px;margin:0"></div><div style="min-width:0;overflow:hidden"><label>끝</label><input id="bend" type="time" value="19:00" style="display:block;width:100%;max-width:100%;min-width:0;box-sizing:border-box;-webkit-appearance:none;appearance:none;font-size:16px;padding:10px 8px;margin:0"></div></div>
-            <button class="big" style="margin-top:12px" onclick="addBooking()">예약하기</button>
-    </div>
-    ${list || '<div class="card muted">예약이 없어요.</div>'}`;
-}
 function addBooking(){
   const date = ymd(new Date()), st = document.getElementById("bstart").value, en = document.getElementById("bend").value;
   if (!st || !en) { window.alert("시작과 끝 시간을 적어 주세요"); return; }
@@ -1058,24 +1093,6 @@ function cancelBooking(id){ S.bookings = S.bookings.filter(b => b.id !== id); sa
 // 주방 사용 중: 여러 명이 동시에 쓸 수 있음. 각자 사용 시작과 사용 끝을 누름
 // 다른 사람 기록은 5분 미만이면 사용 시간을 표시하지 않음. 본인 기록은 0분부터 항상 표시
 function sinceText(t, own){ const m = minsSince(t); return `${fmtTime(t)} 시작` + ((own || m >= 5) ? ` · ${durText(m)}` : ""); }
-function kitchenHTML(){
-  const list = S.users.map(u => {
-    const m = minsSince(u.since);
-    const mine = u.who === (S.me || "나");
-    // 확인 질문은 본인 기록에만 보임 (다른 사람 기록에는 답할 수 없으므로)
-    const ask = m >= 60 && mine ? `<div class="warn" style="font-size:13px">${m}분째 사용 중이에요. 아직 쓰고 있나요?</div>` : "";
-    // 다른 사람 기록은 본인이 대신 지울 수 있음 (잘못 눌렀거나 이미 나간 경우)
-    const del = mine ? "" : `<button class="sm ghost" onclick="removeUser(${u.id})">지우기</button>`;
-    return `<div class="card row"><div style="flex:1"><b>${esc(u.who)}</b> <span class="muted" data-since="${u.since}" data-own="${mine ? 1 : 0}">${sinceText(u.since, mine)}</span>${ask}</div>${del}</div>`;
-  }).join("");
-  return `<div class="sec">주방 사용 중</div>
-    ${timelineHTML()}
-    ${list || '<div class="card">🟢 지금 아무도 안 쓰고 있어요</div>'}
-    ${S.users.some(u => u.who === (S.me || "나")) ? '<button class="big" style="background:#2e7d6b" onclick="toggleUse()">사용 끝</button>' : '<button class="big" onclick="toggleUse()">사용 시작</button>'}
-    <div class="muted">2시간 이상 사용 중이면 자동으로 빠집니다.</div>
-    <div class="muted">10분 이하로 잠깐 쓰는 경우는 굳이 사용 시작을 누르지 않아도 돼요.</div>
-    ${bookingSection()}`;
-}
 // 같은 버튼이 시작과 끝을 겸함. 같은 사람이 여러 번 눌러도 한 번만 기록됨
 // 오늘 시간표: 사람마다 한 줄씩 그림. 예약은 보라, 사용 중은 초록, 흰 선은 사용을 시작한 시점
 // 같은 시간에 여러 명이 있으면 줄이 위아래로 나뉘어 보이므로 겹쳐도 누가 쓰는지 알 수 있음
@@ -1089,7 +1106,7 @@ function timelineHTML(){
     ...S.users.map(u => ({name: u.who, s: u.since, e: Date.now(), cls: "tl-use", now: true})).sort(byStart),
     ...S.bookings.map(bk => ({name: bk.who, s: bk.start, e: bk.end, cls: "tl-book", now: false})).sort(byStart)
   ];
-  if (!rows.length) return `<div class="tl" id="tlBox"><div class="muted" style="font-size:13px">오늘은 예약도 사용 중인 사람도 없어요.</div></div>`;
+  if (!rows.length) return `<div class="tl" id="tlBox"><div class="muted" style="font-size:14px">오늘은 예약도 사용 중인 사람도 없어요.</div></div>`;
   const body = rows.map(r => {
     const l = pct(r.s), w = Math.max(0, pct(r.e) - l);
     const mine = r.name === (S.me || "나");
@@ -1098,10 +1115,10 @@ function timelineHTML(){
     return `<div class="tl-row"><span class="tl-name">${esc(r.name)}</span><div class="tl-track">${bar}${mark}</div></div>`;
   }).join("");
   // 2시간 간격으로 눈금을 찍어 시간 위치를 더 쉽게 읽을 수 있게 함
-  const hours = [0, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22, 24].map(h => `<span style="left:${h / 24 * 100}%">${h}시</span>`).join("");
+  const hours = [0, 6, 12, 18, 24].map(h => `<span style="left:${h / 24 * 100}%">${h}시</span>`).join("");
   return `<div class="tl" id="tlBox">${body}
     <div class="tl-axis"><div class="tl-hours">${hours}</div></div>
-    <div class="muted" style="font-size:12px;margin-top:4px">초록 = 내가 사용 중 · 주황 = 다른 사람 사용 중 · 보라 줄무늬 = 예약</div></div>`;
+    <div class="muted" style="font-size:12px;margin-top:4px">초록 = 내가 사용 중 · 주황 = 다른 사람 · 파랑 = 예약</div></div>`;
 }
 function toggleUse(){
   const mine = S.me || "나";
@@ -1148,23 +1165,6 @@ function nextChangeLabel(c){
   if (c.mode === "fixed") return `<span class="muted">내일</span> <b>${esc(whoOn(c, t + 1) || "담당 없음")}</b>`;
   const every = c.every || 7, left = every - mod(t, every);
   return `<span class="muted">${lang === "en" ? `in ${left} days` : `${left}일 뒤`}</span> <b>${esc(whoOn(c, t + left) || "담당 없음")}</b>`;
-}
-function choresView(){
-  const modeLabel = c => c.mode === "fixed" ? "요일별 고정" : c.mode === "rota" ? ((c.every || 7) === 7 ? "주 1회 교대" : (c.every || 7) + "일마다 교대") : "한 명 고정";
-  const list = S.chores.map(c => `<div class="card">
-    <div class="row"><input type="checkbox" ${isDone(c) ? "checked" : ""} onchange="toggleChore(${c.id})">
-      <div style="flex:1;${isDone(c) ? 'text-decoration:line-through;color:#888' : ''}">
-        <div style="font-weight:700;font-size:16px">${esc(c.task)}</div>
-        <div style="margin-top:4px"><span class="muted" style="font-size:13px">담당</span> <span style="font-size:17px;font-weight:700;color:#2e7d6b">${esc(whoOf(c) || "담당 없음")}</span></div>
-        <div class="muted" style="font-size:12px">${modeLabel(c)}</div></div><button class="sm ghost" onclick="delChore(${c.id})">삭제</button></div>
-    ${scheduleBlock(c)}
-    </div>`).join("");
-  const n = people().length;
-  const hint = n === 1 && !S.serverCode ? `<div class="muted" style="margin-bottom:8px">서버 연결 전 시연용이라 지금은 이 기기의 사용자만 담당으로 고를 수 있어요.</div>` : "";
-  const preview = `<div class="sec">다음 교대 미리보기</div>` + S.chores.map(c => `<div class="card" style="font-size:14px">${esc(en(c.task))}: <span class="muted">${en("지금")}</span> <b>${esc(whoOf(c) || "담당 없음")}</b> → ${nextChangeLabel(c)}</div>`).join("");
-  // 주방 사용은 이번 주 달력과 청소 당번 사이에 둠
-  return `${inviteMiniHTML()}${todayHTML()}${weekCalendar()}${kitchenHTML()}<div class="sec">청소 당번 (이번 주)</div>${hint}${list}${preview}
-    <button class="big" onclick="showAddChore()">+ 청소 항목 추가</button><div id="formArea"></div>`;
 }
 
 // ===== 4. 냉장고·공용품 =====
@@ -1240,33 +1240,6 @@ function shelfBlock(s){
     <div class="row wrap" style="margin-top:6px">${chips}<button class="sm ${shelfEdit.sel.length ? 'ghost' : ''}" onclick="clearShelfNames()">담당 없음</button></div>
     <div class="row" style="margin-top:8px"><button class="sm" onclick="confirmShelf()">확인</button><button class="sm ghost" onclick="cancelShelf()">취소</button></div>`;
 }
-function fridgeView(){
-  // 종류마다 따로 묶음: 냉장·냉동·서랍을 먼저 보여 주고, 직접 적은 종류(찬장, 박스 등)는 종류별로 각각 묶음, 종류가 정해지지 않은 칸은 맨 뒤
-  const groupOf = s => s.tag || "종류 미정";
-  const std = ["냉장","냉동","서랍"];
-  const others = [...new Set(S.spaces.map(s => s.tag).filter(t => t && !std.includes(t)))];
-  const order = [...std, ...others, "종류 미정"];
-  const sorted = [...S.spaces].sort((a, b) => order.indexOf(groupOf(a)) - order.indexOf(groupOf(b)));
-  let lastGroup = null;
-  const shelves = sorted.map((s) => { const g = groupOf(s); const head = g !== lastGroup ? `<div class="sec" style="margin-top:12px">${g}</div>` : ""; lastGroup = g; return head + `<div class="card">${shelfRename === s.id
-      ? `<div class="row wrap"><input id="shelfNameInput" value="${esc(s.name)}" style="flex:1;min-width:160px">${tagSelect("shelfTagInput", s.tag || "")}<button class="sm" onclick="saveShelfName('${s.id}')">저장</button><button class="sm ghost" onclick="cancelShelfName()">취소</button></div>`
-      : `<div><b>${esc(s.name)}</b>${s.tag ? ` <span class="tag">${esc(s.tag)}</span>` : ""}<div class="muted">${esc(shelfOwners(s).join(", ") || "담당 없음")}</div>${linkedItems(s)}</div>`}
-    ${shelfBlock(s)}
-    <div class="row" style="margin-top:8px">${s.photo ? `<img src="${s.photo}" alt="${s.name}" style="width:72px;height:72px;object-fit:cover;border-radius:8px">` : `<div class="thumb" style="width:72px;height:72px">사진 없음</div>`}
-      ${photoBtnsHTML("setShelfPhoto('" + s.id + "',this)")}
-      ${s.photo ? `<button class="sm ghost" onclick="clearShelfPhoto('${s.id}')">삭제</button>` : ""}</div></div>`; }).join("");
-  const supRow = s => `<div class="card row"><div style="flex:1"><b>${esc(s.name)}</b> <span class="tag">${en(s.level)}</span>
-      <div class="muted">${s.price != null ? `£${moneyText(s.price)}` : en("가격 미입력")}${s.date ? (lang === "en" ? ` · bought ${dmy(s.date)}` : ` · ${dmy(s.date)} 구매`) : ""}</div></div>
-    <div class="row"><button class="sm ghost" onclick="cycleSupply(${s.id})">상태 바꾸기</button><button class="sm ghost" onclick="showEditSupply(${s.id})">수정</button><button class="sm ghost" onclick="delSupply(${s.id})">삭제</button></div></div>`;
-  const sup = [...new Set(S.supplies.map(s => s.name))].sort((a,b) => a.localeCompare(b,"ko")).map(n => {
-    const same = S.supplies.filter(s => s.name === n);
-    return (same.length > 1 ? `<div class="sec">${esc(n)} · ${same.length}개</div>` : "") + same.map(supRow).join("");
-  }).join("");
-  const body = sub.fridge === "supplies"
-    ? `<button class="big" onclick="showAddSupply();const s=document.getElementById('sname');s.focus();s.scrollIntoView({block:'center'})">+ 공용품 추가</button><div id="formArea"></div>` + sup
-    : `<button class="big" onclick="showAddShelf()">+ 칸 추가</button><div id="formArea"></div>` + shelves;
-  return seg("fridge", [["shelves","공간"],["supplies","공용품"]]) + body;
-}
 // 공간 사진: 물건 사진과 같은 크기·화질로 줄여서 저장
 async function setShelfPhoto(id, el){
   const file = el.files && el.files[0];
@@ -1317,24 +1290,6 @@ function addSupply(){
 // ===== 5. 알림 =====
 // 우리 집 알림판: 누가 적었는지 기록하지 않음. 사람 이름은 적지 못하게 막음 (물건·칸·상황으로만 적기)
 const BOARD_RULE = "특정한 사람을 가리키지 마세요. 이름, 별명, 방 번호, '○○이가 안 함' 같은 말은 적을 수 없어요. 물건이나 칸, 상황으로만 적어 주세요. 작성자는 기록되지 않아요.";
-function boardHTML(){
-  const list = [...(S.board || [])].sort((a, b) => b.at - a.at);
-  const items = list.length ? list.map(b => `<div class="card row"><div style="flex:1">
-      ${b.place ? `<span class="tag">${esc(b.place)}</span> ` : ""}<span>${esc(b.text)}</span>
-      <div class="muted" style="font-size:12px">${fmtDay(b.at)}</div></div>
-      <button class="sm ghost" onclick="delBoard(${b.id})">지우기</button></div>`).join("")
-    : `<div class="card muted">아직 남긴 메모가 없어요.</div>`;
-  // 알림판 장소는 '방'을 뺀 목록. '기타'를 고르면 직접 적을 수 있음
-  const places = `<option value="">장소 없음</option>` + LOCATIONS.filter(l => l !== "방").map(l => `<option value="${l}">${l}</option>`).join("");
-  return `<div class="sec">우리 집 알림판</div>
-    <div class="card">
-      <div class="muted" style="font-size:12px;margin-bottom:6px">${BOARD_RULE}</div>
-      <input id="bText" maxlength="100" placeholder="예: 싱크대 기름 많음, 쌀이 거의 없음">
-      <div class="row wrap" style="margin-top:8px"><select id="bPlace" onchange="toggleOther('bPlace','bPlaceOther')">${places}</select><button class="sm" onclick="postBoard()">남기기</button></div>
-      <input id="bPlaceOther" maxlength="30" placeholder="장소를 직접 적으세요" style="display:none">
-    </div>
-    ${items}`;
-}
 // 알림판 글에 사람(이름, 방 번호)이 들어 있는지 확인
 // - 숫자 이름(방 번호): 앞뒤가 다른 숫자가 아니어야 하고, "3번 선반", "2시", "5개"처럼 단위가 붙으면 방 번호로 보지 않음
 // - 영어 이름: 단어 단위로 비교 ("Al"이 "Also"를 막지 않게), 대소문자 무시
@@ -1359,26 +1314,13 @@ function postBoard(){
   save(); render();
 }
 function delBoard(id){ S.board = (S.board || []).filter(b => b.id !== id); save(); render(); }
-function alertsView(){
-  const food = S.notify.food ? S.items.filter(f => f.expiry && daysLeft(f.expiry) <= 1).map(f => {
-    const d = daysLeft(f.expiry); return `${en("음식")}: ${esc(f.name)} — ${d < 0 ? en("기한 지남") : d === 0 ? en("오늘 만료") : en("내일 만료")}`; }) : [];
-  const sup = S.notify.supply ? S.supplies.filter(s => s.level !== "충분").map(s => `${en("공용품")}: ${esc(s.name)} — ${en(s.level)}`) : [];
-  const chore = S.notify.chore ? S.chores.filter(c => !isDone(c)).map(c => `${en("청소")}: ${esc(en(c.task))} ${en("아직 안 함")}`) : [];
-  const all = [...food, ...sup, ...chore];
-  return boardHTML() + `<div class="sec">지금 알림</div>
-    ${all.length ? all.map(t => `<div class="card">${t}</div>`).join("") : '<div class="card muted">지금 알릴 것이 없어요.</div>'}
-    <div class="sec">알림 설정</div>
-    ${[["food","유통기한 임박"],["chore","청소 당번"],["supply","공용품 부족"]].map(([k,l]) =>
-      `<div class="card row"><div style="flex:1">${l}</div><button class="sm ${S.notify[k] ? '' : 'ghost'}" onclick="toggleNotify('${k}')">${S.notify[k] ? "켜짐" : "꺼짐"}</button></div>`).join("")}
-    <div class="muted">앱을 열었을 때 보이는 알림 목록입니다. 휴대폰 푸시 알림은 서버를 붙인 뒤에 가능합니다.</div>`;
-}
 function toggleNotify(k){ S.notify[k] = !S.notify[k]; save(); render(); }
 
 // ===== 설정 (언어 고르기) =====
 function settingsView(){
   const opts = [["ko","한국어"],["en","English"]].map(([v,l]) => `<button class="sm ${lang === v ? '' : 'ghost'}" style="flex:1" onclick="setLang('${v}')">${l}</button>`).join("");
   // 돌아가기는 맨 위에 둬서, 긴 설정 화면을 끝까지 내리지 않아도 되게 함
-  return `<div class="row" style="align-items:center;gap:10px;margin:0 0 8px"><button class="sm ghost" onclick="go(S.started ? 'chores' : 'home')">← 돌아가기</button><div class="sec" style="margin:0">설정</div></div>
+  return `<div class="row" style="align-items:center;gap:10px;margin:0 0 8px"><button class="sm ghost" onclick="go(S.started ? 'chores' : 'home')">← 돌아가기</button></div>
     <div class="card"><b>언어</b>
       <div class="muted" style="margin:4px 0 10px">앱 안의 글자를 바꿔요. 이 기기에만 저장돼요.</div>
       <div class="row" style="gap:8px">${opts}</div></div>
@@ -1391,6 +1333,8 @@ function settingsView(){
       <div class="card"><b>내 이름</b>
         <div class="row" style="margin-top:6px"><input id="setMe" maxlength="20" value="${esc(S.me || "")}" placeholder="예: 우상" style="flex:1"><button class="sm" onclick="saveMyName()">저장</button></div>
         <div class="muted" style="margin-top:6px">바꾸면 담당, 물건 주인, 기록에 있던 내 이름도 같이 바뀌어요.</div></div>` : ""}
+    ${S.started ? `<div class="sec">알림 설정</div><div class="list">${[["food","유통기한 임박"],["chore","청소 당번"],["supply","공용품 부족"]].map(([k,l]) =>
+      `<div class="li" style="cursor:default"><div class="main"><div class="t" style="font-size:15px">${l}</div></div><button class="sm ${S.notify[k] ? '' : 'ghost'}" onclick="toggleNotify('${k}')">${S.notify[k] ? "켜짐" : "꺼짐"}</button></div>`).join("")}</div>` : ""}
     <div class="muted">언어를 바꿔도 저장된 물건·음식 기록은 그대로 남아요. 이름이나 메모처럼 직접 적은 글은 번역되지 않아요.</div>
     ${S.started ? `<button class="ghost big" onclick="goStart()">처음 화면으로</button>` : ""}
     <button class="ghost big" onclick="resetAll()">${resetArmed ? "한 번 더 누르면 모두 지워져요" : "데이터 초기화"}</button>
@@ -1424,8 +1368,302 @@ function saveMyName(){
   save(); render();
 }
 
+// ===== 아래에서 올라오는 시트 (v31) =====
+// 수정·삭제·담당 방식처럼 자주 안 쓰는 버튼은 목록에서 빼고 시트에 모음. 목록은 한눈에 보이게 짧게 유지
+// 시트 안에 formArea가 있어서 기존 입력 폼(showAddItem 등)을 그대로 시트 안에 띄울 수 있음 (화면 맨 앞에 넣어 먼저 잡히게 함)
+// sheetState가 있으면 render() 뒤에도 같은 시트를 다시 그림 (시트 안에서 담당을 바꾸는 것처럼 화면을 다시 그리는 경우)
+let sheetState = null;
+function openSheet(html, title){
+  removeSheet();
+  const o = document.createElement("div"); o.id = "sheet";
+  o.innerHTML = `<div class="sheet-bg" onclick="closeSheet()"></div><div class="sheet"><div class="sheet-bar"><b>${title ? esc(title) : ""}</b><button class="sm ghost" onclick="closeSheet()">닫기</button></div><div id="formArea">${html || ""}</div></div>`;
+  document.querySelector(".app").prepend(o);
+  return o.querySelector("#formArea");
+}
+function removeSheet(){ const o = document.getElementById("sheet"); if (o) o.remove(); }
+function closeSheet(){ sheetState = null; editing = null; pending = null; shelfEdit = null; shelfRename = null; removeSheet(); }
+function openState(kind, id){ editing = null; pending = null; shelfEdit = null; shelfRename = null; sheetState = {kind, id}; render(); }
+const SHEETS = { chore: id => choreSheet(id), item: id => itemSheet(id), shelf: id => shelfSheet(id) };
+
+// ===== 머리 (집 이름 · 인원 · 저장 상태, 초대·설정 버튼, 큰 화면 제목) =====
+const PAGE_TITLE = {chores:"오늘 우리 집", items:"물건 찾기", fridge:"냉장고·공용품", alerts:"알림", settings:"설정"};
+const ICON_INVITE = `<svg viewBox="0 0 24 24"><path d="M15 19c0-2.2-2.7-4-6-4s-6 1.8-6 4"/><circle cx="9" cy="8" r="3.5"/><path d="M19 8v6M16 11h6"/></svg>`;
+const ICON_GEAR = `<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>`;
+function headerHTML(){
+  if (!S.started) return `<div class="hdr-title" style="margin-top:8px">우리 집</div>`;
+  const n = people().length;
+  const meta = esc(S.houseName || "우리 집") + " · " + (S.mode === "solo" ? en("혼자 쓰는 중") : (lang === "en" ? `${n} people` : `${n}명`));
+  return `<div class="hdr-top"><div class="hdr-meta">${meta} <span id="sync" class="sync"></span></div>
+    <div class="hdr-btns"><button class="hbtn" onclick="openInvite()">${ICON_INVITE}<span>초대</span></button><button class="hbtn" style="padding:0 10px" onclick="go('settings')" aria-label="설정">${ICON_GEAR}</button></div></div>
+    <div class="hdr-title">${PAGE_TITLE[tab] || ""}</div>`;
+}
+// 초대: 집이 서버에 있으면 초대 카드, 혼자 쓰는 중이면 집을 서버에 만든 뒤 초대 카드
+async function openInvite(){
+  if (S.mode === "solo" || !(S.serverCode || S.inviteCode)) {
+    if (!S.me) { openSheet("", "룸메이트 초대"); startInvite(); return; }
+    await makeInvite(); return;
+  }
+  openSheet(inviteBox(), "룸메이트 초대");
+}
+
+// ===== 사람 표시: 이름 첫 글자 동그라미 =====
+const AV_COLORS = ["#5B7CFA", "#E8A13A", "#D9577A", "#7B61FF", "#2BA3C7", "#8A6F4D"];
+function avatar(name){
+  const n = String(name || "?"), me = n === (S.me || "나");
+  const i = Math.max(0, people().indexOf(n));
+  return `<span class="av" style="background:${me ? "var(--main)" : AV_COLORS[i % AV_COLORS.length]}">${esc(([...n.trim()][0] || "?").toUpperCase())}</span>`;
+}
+function whoHTML(name){
+  if (!name) return `<div class="who"><span>${en("담당 없음")}</span></div>`;
+  const me = name === (S.me || "나");
+  return `<div class="who${me ? " me" : ""}">${avatar(name)}<span>${me ? en("나") : esc(name)}</span></div>`;
+}
+
+// ===== 청소·주방 탭 =====
+// 맨 위: 주방 상태 하나만 크게. 그 아래 작은 칸 3개(내 청소, 곧 만료, 부족). 그다음 이번 주 청소, 주방 예약
+function kitchenHero(){
+  const me = S.me || "나", now = Date.now();
+  const mineUse = S.users.find(u => u.who === me);
+  const busy = S.users.length > 0;
+  const next = [...S.bookings].filter(b => b.end > now).sort((a, b) => a.start - b.start)[0];
+  const nextTxt = next
+    ? (next.start <= now ? `${en("예약 중")} ~${fmtTime(next.end)} · ${esc(next.who === me ? en("나") : next.who)}` : `${en("다음 예약")} ${fmtTime(next.start)} · ${esc(next.who === me ? en("나") : next.who)}`)
+    : en("오늘 예약 없음");
+  const state = busy ? (lang === "en" ? `In use · ${S.users.length}` : `사용 중 · ${S.users.length}명`) : en("비어 있어요");
+  const users = S.users.map(u => {
+    const mine = u.who === me;
+    return `<div class="u"><b>${mine ? en("나") : esc(u.who)}</b><span data-since="${u.since}" data-own="${mine ? 1 : 0}">${sinceText(u.since, mine)}</span>${mine ? "" : `<button onclick="removeUser(${u.id})">${en("지우기")}</button>`}</div>`;
+  }).join("");
+  const m = mineUse ? minsSince(mineUse.since) : 0;
+  const ask = mineUse && m >= 60 ? `<div class="ask">${lang === "en" ? `In use for ${m} min. Still using it?` : `${m}분째 사용 중이에요. 아직 쓰고 있나요?`}</div>` : "";
+  return `<div class="hero"><div class="lab">${en("주방")}</div>
+    <div class="hrow"><div style="min-width:0"><div class="st"><span class="dot${busy ? " busy" : ""}"></span>${state}</div><div class="sub">${nextTxt}</div></div>
+    ${mineUse ? `<button class="end" onclick="toggleUse()">${en("사용 끝")}</button>` : `<button onclick="toggleUse()">${en("사용 시작")}</button>`}</div>
+    ${users ? `<div class="users">${users}</div>` : ""}${ask}</div>`;
+}
+function tilesHTML(){
+  const me = S.me || "나";
+  const more = n => n > 1 ? (lang === "en" ? ` +${n - 1}` : ` 외 ${n - 1}개`) : "";
+  const mine = S.chores.filter(c => whoOf(c) === me && !isDone(c));
+  const food = S.items.filter(f => f.expiry && daysLeft(f.expiry) <= 1).sort((a, b) => daysLeft(a.expiry) - daysLeft(b.expiry));
+  const low = S.supplies.filter(s => s.level !== "충분");
+  const when = d => d < 0 ? en("기한 지남") : d === 0 ? en("오늘") : en("내일");
+  const tile = (color, lab, v, s, click) => `<div class="tile" onclick="${click}"><div class="lab"><span class="dot" style="background:${color}"></span>${en(lab)}</div>`
+    + (v ? `<div class="v">${v}</div><div class="s">${s}</div>` : `<div class="v none">${en("없음")}</div><div class="s">&nbsp;</div>`) + `</div>`;
+  return `<div class="tiles">
+    ${tile("var(--main)", "내 청소", mine[0] && esc(en(mine[0].task)), (mine.length > 1 ? "" : en("이번 차례")) + more(mine.length), "const l=document.getElementById('choreList');if(l)l.scrollIntoView({behavior:'smooth',block:'center'})")}
+    ${tile("var(--warn)", "곧 만료", food[0] && esc(food[0].name), food[0] ? when(daysLeft(food[0].expiry)) + more(food.length) : "", "itemFilter='soon';go('items')")}
+    ${tile("var(--amber)", "부족", low[0] && esc(en(low[0].name)), low[0] ? en(low[0].level) + more(low.length) : "", "sub.fridge='supplies';go('fridge')")}
+  </div>`;
+}
+// 교대 방식인 항목은 다음 담당을 한 줄로 보여 줌
+function nextChangeText(c){
+  const t = todayN();
+  if (c.mode === "fixed") { const w = whoOn(c, t + 1) || en("담당 없음"); return lang === "en" ? `Tomorrow: ${esc(w)}` : `내일 ${esc(w)}`; }
+  const every = c.every || 7, left = every - mod(t, every), w = whoOn(c, t + left) || en("담당 없음");
+  return lang === "en" ? `${esc(w)} in ${left} day(s)` : `${left}일 뒤 ${esc(w)}`;
+}
+function choreRow(c){
+  const done = isDone(c);
+  const sub = c.mode === "rota" || c.mode === "fixed" ? `<div class="m">${nextChangeText(c)}</div>` : "";
+  return `<div class="li" onclick="openState('chore',${c.id})"><input type="checkbox" ${done ? "checked" : ""} onclick="event.stopPropagation()" onchange="toggleChore(${c.id})" aria-label="${esc(c.task)}">
+    <div class="main"><div class="t${done ? " done" : ""}">${esc(en(c.task))}</div>${sub}</div>${whoHTML(whoOf(c))}</div>`;
+}
+// 청소 항목을 누르면: 지금 담당, 다음 교대, 정하는 방식(한 명 고정 / 주기 교대 / 요일별 고정), 삭제
+function choreSheet(id){
+  const c = S.chores.find(x => x.id === id); if (!c) return null;
+  const rot = c.mode === "rota" || c.mode === "fixed";
+  return {title: en(c.task), html: `<div class="kv"><span>${en("지금 담당")}</span><span>${esc(whoOf(c) || en("담당 없음"))}</span></div>
+    ${rot ? `<div class="kv"><span>${en("다음 교대")}</span><span>${nextChangeText(c)}</span></div>` : ""}
+    <div class="sec">${en("정하는 방식")}</div>${scheduleBlock(c)}
+    <button class="big danger" style="margin-top:22px" onclick="delChore(${c.id})">${en("이 청소 항목 삭제")}</button>`};
+}
+function bookingFormHTML(){
+  const box = "display:block;width:100%;max-width:100%;min-width:0;box-sizing:border-box;-webkit-appearance:none;appearance:none;font-size:16px;padding:10px 8px;margin:4px 0 0";
+  return `<div class="muted">${lang === "en" ? `Today, ${fmtDay(Date.now())}` : `오늘 ${fmtDay(Date.now())}`}</div>
+    <div style="display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:10px;margin-top:10px;overflow:hidden">
+      <div style="min-width:0;overflow:hidden"><label>시작</label><input id="bstart" type="time" value="18:00" style="${box}"></div>
+      <div style="min-width:0;overflow:hidden"><label>끝</label><input id="bend" type="time" value="19:00" style="${box}"></div></div>
+    <button class="big" style="margin-top:16px" onclick="addBooking()">예약하기</button>
+    <div class="hint">${en("사용 시작을 누르고 2시간이 지나면 자동으로 끝나요")}</div>`;
+}
+function openBooking(){ openSheet(bookingFormHTML(), "주방 예약"); }
+function choresView(){
+  const n = people().length;
+  const strip = (t) => `<div class="invite-strip"><div>${en(t)}</div><button onclick="openInvite()">${en("초대")}</button></div>`;
+  const invite = S.mode === "solo" ? strip("룸메이트와 함께 쓰면 청소·주방이 같이 보여요") : n < 2 ? strip("아직 혼자예요. 룸메이트를 불러 보세요") : "";
+  const mon = weekStart(new Date()), end = new Date(mon); end.setDate(mon.getDate() + 6);
+  const range = `${mon.getDate()}/${mon.getMonth() + 1} – ${end.getDate()}/${end.getMonth() + 1}`;
+  const bookings = [...S.bookings].sort((a, b) => a.start - b.start).map(b => `<div class="li" style="cursor:default;min-height:48px;padding:8px 0">
+      <div class="main"><div class="t" style="font-size:15px">${fmtTime(b.start)} – ${fmtTime(b.end)}</div></div>${whoHTML(b.who)}<button class="x" onclick="cancelBooking(${b.id})" aria-label="취소">×</button></div>`).join("");
+  return `<div id="formArea"></div>${invite}${kitchenHero()}${tilesHTML()}
+    <div class="sech"><div class="sec">이번 주 청소</div><span class="note">${range}</span></div>
+    <div class="list" id="choreList">${S.chores.map(choreRow).join("")}
+      <div class="li" onclick="openSheet('','청소 항목 추가');showAddChore()"><span class="add">+ ${en("청소 항목 추가")}</span></div></div>
+    <div class="sech"><div class="sec">주방 예약</div><button class="act" onclick="openBooking()">+ ${en("예약")}</button></div>
+    ${timelineHTML()}${bookings ? `<div class="list">${bookings}</div>` : ""}`;
+}
+
+// ===== 물건 탭 =====
+// 검색창, 필터 칩(전체 / 내 것 / 곧 만료 / 정렬), 사진·이름·위치 한 줄 목록, 떠 있는 + 버튼
+let itemFilter = "all";
+const SORTS = [["location", "장소별"], ["name", "이름별"], ["recent", "최근순"]];
+function cycleSort(){ const i = SORTS.findIndex(x => x[0] === itemView); itemView = SORTS[(i + 1) % SORTS.length][0]; render(); }
+function itemsView(){
+  const me = S.me || "나";
+  const soon = S.items.filter(f => f.expiry && daysLeft(f.expiry) <= 1).length;
+  const mine = S.items.filter(i => i.owner === me).length;
+  const chip = (k, l, n, red) => `<button class="chip${itemFilter === k ? " on" : ""}" onclick="itemFilter='${k}';render()">${en(l)} ${red && n ? `<i>${n}</i>` : n}</button>`;
+  const sortL = (SORTS.find(x => x[0] === itemView) || SORTS[0])[1];
+  return `<div id="formArea"></div>
+    <input id="itemSearch" class="search" placeholder="이름으로 찾기 (ㅅ, 쌀, rice)" value="${esc(itemQuery)}" oninput="itemQuery=this.value;renderItemList()">
+    <div class="chips">${chip("all", "전체", S.items.length)}${chip("mine", "내 것", mine)}${chip("soon", "곧 만료", soon, true)}<button class="chip" onclick="cycleSort()">${en(sortL)} ⇅</button></div>
+    <div id="itemList">${itemListHTML()}</div>
+    ${S.log.length ? `<div class="list" style="margin-top:18px"><div class="li" onclick="openSheet(logHTML(),'먹고 버린 기록')"><div class="main"><div class="t" style="font-size:15px">${en("먹고 버린 기록")}</div></div><span class="pill">${S.log.length}</span></div></div>` : ""}
+    <button class="fab" onclick="openSheet('','물건 추가');showAddItem()" aria-label="물건 추가">+</button>`;
+}
+// 먹고 버린 기록: 최근 것부터 30개. 누가 먹었는지는 보여 주지 않음
+function logHTML(){
+  const rows = [...S.log].sort((a, b) => b.at - a.at).slice(0, 30);
+  return rows.map(l => `<div class="kv"><span>${esc(l.name)} <span class="muted">${fmtDay(l.at)}</span></span><span class="pill ${l.how === "먹음" ? "green" : ""}">${en(l.how)}</span></div>`).join("");
+}
+function itemListHTML(){
+  const me = S.me || "나";
+  let list = S.items.filter(i => matches(i.name, itemQuery));
+  if (itemFilter === "mine") list = list.filter(i => i.owner === me);
+  if (itemFilter === "soon") list = list.filter(i => i.expiry && daysLeft(i.expiry) <= 1);
+  if (!S.items.length) return `<div class="list" style="margin-top:14px"><div class="empty">${en("아직 등록한 물건이 없어요. 아래 + 버튼으로 추가해 보세요.")}</div></div>`;
+  if (!list.length) return `<div class="list" style="margin-top:14px"><div class="empty">${en("검색 결과가 없어요.")}</div></div>`;
+  const byName = (a, b) => a.name.localeCompare(b.name, "ko");
+  if (itemView === "location") {
+    // 기본 장소만 따로 묶고, 직접 적은 장소와 '기타'는 '기타' 한 묶음
+    const place = i => LOCATIONS.includes(i.location) ? i.location : "기타";
+    return [...new Set(list.map(place))].sort((a, b) => rank(a) - rank(b)).map(loc => {
+      const arr = list.filter(i => place(i) === loc).sort(byName);
+      return `<div class="sech"><div class="sec">${en(loc)}</div><span class="note">${arr.length}</span></div><div class="list">${arr.map(itemRow).join("")}</div>`;
+    }).join("");
+  }
+  const sorted = itemView === "name" ? [...list].sort(byName) : [...list].sort((a, b) => b.id - a.id);
+  return `<div class="list" style="margin-top:14px">${sorted.map(itemRow).join("")}</div>`;
+}
+function expiryPill(i){
+  if (!i.expiry) return "";
+  const d = daysLeft(i.expiry);
+  const txt = d < 0 ? en("기한 지남") : d === 0 ? en("오늘 만료") : d === 1 ? en("내일 만료") : (lang === "en" ? `${d} days left` : `${d}일 남음`);
+  return `<span class="pill ${d <= 1 ? "red" : d <= 3 ? "amber" : ""}">${txt}</span>`;
+}
+function ownerText(o){ return !o ? "" : o === (S.me || "나") ? en("나") : en(o); }
+function itemRow(i){
+  const ph = i.photo ? `<img class="ph" src="${i.photo}" alt="" onclick="event.stopPropagation();showPhoto(this.src)">` : `<div class="thumb">${en("사진 없음")}</div>`;
+  const q = (i.qty || 1) > 1 ? ` <span class="muted" style="font-weight:600">×${i.qty}</span>` : "";
+  const meta = [en(i.location), placeName(i), ownerText(i.owner)].filter(Boolean).map(esc).join(" · ");
+  return `<div class="li" onclick="openState('item',${i.id})">${ph}<div class="main"><div class="t">${esc(i.name)}${q}</div><div class="m">${meta}</div></div>${expiryPill(i)}</div>`;
+}
+// 물건을 누르면: 큰 사진, 장소·주인·가격·유통기한, 음식이면 개수와 먹었음·버림, 수정·삭제
+function itemSheet(id){
+  const i = S.items.find(x => x.id === id); if (!i) return null;
+  const kv = (k, v) => v ? `<div class="kv"><span>${en(k)}</span><span>${v}</span></div>` : "";
+  const food = i.expiry ? `<div class="sec">${en("음식")}</div>
+    <div class="row" style="gap:8px"><button class="sm ghost" onclick="foodQty(${i.id},-1)" aria-label="하나 빼기">−</button><b style="min-width:40px;text-align:center">${i.qty || 1}</b><button class="sm ghost" onclick="foodQty(${i.id},1)" aria-label="하나 더하기">+</button>
+      <span style="flex:1"></span><button class="sm" onclick="eatFood(${i.id})">먹었음</button><button class="sm ghost" onclick="throwFood(${i.id})">버림</button></div>` : "";
+  return {title: i.name, html: `${i.photo ? `<img class="big-ph" src="${i.photo}" alt="" onclick="showPhoto(this.src)">` : ""}
+    ${kv("장소", esc(en(i.location)) + (placeName(i) ? " · " + esc(placeName(i)) : ""))}
+    ${kv("주인", esc(ownerText(i.owner)))}
+    ${kv("가격", i.price != null ? "£" + moneyText(i.price) : "")}
+    ${kv("유통기한", i.expiry ? dmy(i.expiry) + " " + expiryPill(i) : "")}
+    ${food}
+    <div class="row" style="margin-top:20px"><button class="ghost" style="flex:1" onclick="showEditItem(${i.id})">수정</button><button class="danger" style="flex:1" onclick="delItem(${i.id})">삭제</button></div>`};
+}
+
+// ===== 냉장고·공용품 탭 =====
+function fridgeView(){
+  const tabs = `<div class="chips" style="margin-top:0">${[["shelves", "공간"], ["supplies", "공용품"]].map(([k, l]) => `<button class="chip${sub.fridge === k ? " on" : ""}" onclick="sub.fridge='${k}';render()">${en(l)}</button>`).join("")}</div>`;
+  if (sub.fridge === "supplies") {
+    const rows = [...S.supplies].sort((a, b) => a.name.localeCompare(b.name, "ko")).map(s => {
+      const cls = s.level === "충분" ? "green" : s.level === "없음" ? "red" : "amber";
+      const meta = [s.price != null ? `£${moneyText(s.price)}` : "", s.date ? (lang === "en" ? `bought ${dmy(s.date)}` : `${dmy(s.date)} 구매`) : ""].filter(Boolean).join(" · ");
+      return `<div class="li" onclick="openSheet('','공용품 수정');showEditSupply(${s.id})"><div class="main"><div class="t">${esc(en(s.name))}</div>${meta ? `<div class="m">${meta}</div>` : ""}</div>
+        <button class="pill ${cls}" style="min-height:32px;border-radius:10px;padding:4px 12px" onclick="event.stopPropagation();cycleSupply(${s.id})">${en(s.level)}</button></div>`;
+    }).join("");
+    return `<div id="formArea"></div>${tabs}<div class="hint" style="margin:8px 4px 10px">${en("상태를 누르면 충분 → 적음 → 없음으로 바뀌어요")}</div>
+      <div class="list">${rows}<div class="li" onclick="openSheet('','공용품 추가');showAddSupply()"><span class="add">+ ${en("공용품 추가")}</span></div></div>`;
+  }
+  // 종류마다 묶음: 냉장·냉동·서랍을 먼저, 직접 적은 종류(찬장 등)는 종류별로, 종류 없는 칸은 맨 뒤
+  const groupOf = s => s.tag || "종류 미정";
+  const std = ["냉장", "냉동", "서랍"];
+  const others = [...new Set(S.spaces.map(s => s.tag).filter(t => t && !std.includes(t)))];
+  const order = [...std, ...others, "종류 미정"].filter(g => S.spaces.some(s => groupOf(s) === g));
+  const row = s => {
+    const n = S.items.filter(i => i.spaceId === s.id).length;
+    const ph = s.photo ? `<img class="ph" src="${s.photo}" alt="" onclick="event.stopPropagation();showPhoto(this.src)">` : `<div class="thumb">${en("사진 없음")}</div>`;
+    return `<div class="li" onclick="openState('shelf','${s.id}')">${ph}<div class="main"><div class="t">${esc(s.name)}</div><div class="m">${esc(shelfOwners(s).join(", ") || en("담당 없음"))}</div></div><span class="pill">${lang === "en" ? `${n} item${n === 1 ? "" : "s"}` : `${n}개`}</span></div>`;
+  };
+  const groups = order.map(g => `<div class="sech"><div class="sec">${en(g === "냉장" ? "냉장고" : g)}</div></div><div class="list">${S.spaces.filter(s => groupOf(s) === g).map(row).join("")}</div>`).join("");
+  return `<div id="formArea"></div>${tabs}${groups}
+    <div class="list" style="margin-top:14px"><div class="li" onclick="openSheet('','칸 추가');showAddShelf()"><span class="add">+ ${en("칸 추가")}</span></div></div>`;
+}
+// 칸을 누르면: 사진, 종류, 쓰는 사람, 들어 있는 것, 이름 바꾸기, 사진 바꾸기, 삭제
+function shelfSheet(id){
+  const s = spaceOf(id); if (!s) return null;
+  const top = shelfRename === s.id
+    ? `<label>칸 이름</label><input id="shelfNameInput" value="${esc(s.name)}"><label>종류</label>${tagSelect("shelfTagInput", s.tag || "")}
+       <div class="row" style="margin-top:10px"><button class="sm" onclick="saveShelfName('${s.id}')">저장</button><button class="sm ghost" onclick="cancelShelfName()">취소</button></div>`
+    : `<div class="kv"><span>${en("종류")}</span><span>${esc(en(s.tag === "냉장" ? "냉장고" : (s.tag || "종류 미정")))}</span></div>`;
+  const owners = shelfEdit && shelfEdit.id === s.id ? `<div class="sec">${en("쓰는 사람")}</div>${shelfBlock(s)}`
+    : `<div class="kv"><span>${en("쓰는 사람")}</span><span>${esc(shelfOwners(s).join(", ") || en("담당 없음"))}</span></div>`;
+  return {title: s.name, html: `${s.photo ? `<img class="big-ph" src="${s.photo}" alt="" onclick="showPhoto(this.src)">` : ""}${top}${owners}${linkedItems(s)}
+    <div class="row wrap" style="margin-top:16px;gap:6px"><button class="sm ghost" onclick="startShelfEdit('${s.id}')">쓰는 사람</button><button class="sm ghost" onclick="startShelfRename('${s.id}')">이름 바꾸기</button></div>
+    <div class="row wrap" style="margin-top:8px">${photoBtnsHTML("setShelfPhoto('" + s.id + "',this)")}${s.photo ? `<button class="sm ghost" onclick="clearShelfPhoto('${s.id}')">사진 지우기</button>` : ""}</div>
+    <button class="big danger" style="margin-top:18px" onclick="delShelf('${s.id}')">칸 삭제</button>`};
+}
+
+// ===== 알림 탭 =====
+// 챙길 것(만료, 부족, 청소)을 맨 위에. 알림판은 메신저처럼 입력 칸 하나와 보내기 버튼
+function alertItems(){
+  const me = S.me || "나", out = [];
+  if (S.notify.food) S.items.filter(f => f.expiry && daysLeft(f.expiry) <= 1).forEach(f => {
+    const d = daysLeft(f.expiry);
+    out.push({c: "var(--warn)", t: f.name, s: d < 0 ? en("기한 지남") : d === 0 ? en("오늘 만료") : en("내일 만료"), cls: "red", mine: true, go: "itemFilter='soon';go('items')"});
+  });
+  if (S.notify.supply) S.supplies.filter(s => s.level !== "충분").forEach(s => out.push({c: "var(--amber)", t: en(s.name), s: en(s.level), cls: "amber", mine: true, go: "sub.fridge='supplies';go('fridge')"}));
+  if (S.notify.chore) S.chores.filter(c => !isDone(c)).forEach(c => {
+    const w = whoOf(c);
+    out.push({c: w === me ? "var(--main)" : "var(--edge)", t: en(c.task), s: w === me ? en("내 차례") : w ? (lang === "en" ? `${w}'s turn` : `${w} 차례`) : en("담당 없음"), cls: w === me ? "green" : "", mine: w === me, go: "go('chores')"});
+  });
+  return out;
+}
+function timeAgo(t){
+  const m = minsSince(t);
+  if (m < 1) return en("방금");
+  if (m < 60) return lang === "en" ? `${m} min ago` : `${m}분 전`;
+  const h = Math.floor(m / 60);
+  return h < 24 ? (lang === "en" ? `${h}h ago` : `${h}시간 전`) : fmtDay(t);
+}
+function boardHTML(){
+  const list = [...(S.board || [])].sort((a, b) => b.at - a.at);
+  // 알림판 장소는 '방'을 뺀 목록. '기타'를 고르면 직접 적을 수 있음
+  const places = `<option value="">장소 없음</option>` + LOCATIONS.filter(l => l !== "방").map(l => `<option value="${l}">${l}</option>`).join("");
+  const notes = list.map(b => `<div class="li" style="cursor:default"><div class="main"><div class="t" style="font-size:15px;white-space:normal">${esc(b.text)}</div>
+      <div class="m">${b.place ? `<span class="tag" style="margin:0 5px 0 0">${esc(b.place)}</span>` : ""}${timeAgo(b.at)}</div></div><button class="x" onclick="delBoard(${b.id})" aria-label="지우기">×</button></div>`).join("");
+  return `<div class="sech"><div class="sec">익명 알림판</div><span class="note">${en("이름은 남지 않아요")}</span></div>
+    <div class="post"><input id="bText" maxlength="100" placeholder="예: 싱크대 기름 많음, 쌀이 거의 없음" onkeydown="if(event.key==='Enter')postBoard()"><button class="send" onclick="postBoard()" aria-label="남기기"><svg viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button></div>
+    <div class="post-opt"><select id="bPlace" onchange="toggleOther('bPlace','bPlaceOther')">${places}</select><input id="bPlaceOther" maxlength="30" placeholder="장소를 직접 적으세요" style="display:none"></div>
+    <div class="hint">${en("사람 대신 물건·장소·상황으로 적어 주세요")}</div>
+    <div class="list" style="margin-top:12px">${notes || `<div class="empty">${en("아직 남긴 메모가 없어요.")}</div>`}</div>`;
+}
+function alertsView(){
+  const all = alertItems();
+  const rows = all.map(a => `<div class="li" onclick="${a.go}"><span class="dot" style="background:${a.c}"></span><div class="main"><div class="t" style="font-size:15px">${esc(a.t)}</div></div><span class="pill ${a.cls}">${esc(a.s)}</span></div>`).join("");
+  return `<div id="formArea"></div>
+    <div class="sech" style="margin-top:4px"><div class="sec">챙길 것</div><span class="note">${all.length}</span></div>
+    <div class="list">${rows || `<div class="empty">${en("지금 챙길 것이 없어요")}</div>`}</div>
+    ${boardHTML()}`;
+}
+// 아래 탭의 알림 숫자: 나와 관련된 것만 (만료, 부족, 내 청소)
+const alertBadge = () => alertItems().filter(a => a.mine).length;
+
 // ===== 화면 전환 =====
-function go(t){ tab = t; render(); }
+function go(t){ tab = t; sheetState = null; window.scrollTo(0, 0); render(); }
 // 처음 선택 화면(혼자 쓰기, 집 만들기, 초대 코드)으로 돌아감. 입력한 데이터는 그대로 남음
 function goStart(){ S.started = false; save(); render(); }
 // 사용 시간을 "00시간 00분" 형식으로 보여 줌
@@ -1468,15 +1706,18 @@ function render(){
   if(!S.started && tab !== "settings") tab = "home";
   // 집에 들어간 뒤에는 집 화면 대신 청소·주방 탭을 처음으로 보여 줌
   if(S.started && tab === "home") tab = "chores";
-  document.getElementById("title").innerHTML = esc((S.started && S.houseName) || "우리 집") +(S.started ? ` <button class="sm ghost" onclick="go('settings')" style="float:right" aria-label="설정">⚙️</button><span id="sync" class="sync"></span>` : "");
+  removeSheet();
+  document.getElementById("title").innerHTML = headerHTML();
   updateSync();
   document.getElementById("nav").innerHTML = S.started
-    ? TABS.map(([k,l,i]) => `<button class="${tab === k ? 'on' : ''}" onclick="go('${k}')"><span class="ico">${i}</span>${l}</button>`).join("")
+    ? TABS.map(([k,l,i]) => { const b = k === "alerts" ? alertBadge() : 0; return `<button class="${tab === k ? 'on' : ''}" onclick="go('${k}')"><span class="ico">${i}${b ? `<span class="badge">${b}</span>` : ""}</span>${l}</button>`; }).join("")
     : "";
   const views = {home:homeView, items:itemsView, chores:choresView, fridge:fridgeView, alerts:alertsView, settings:settingsView};
   document.getElementById("view").innerHTML = views[tab]();
   translateDom(document.querySelector(".app"));
   translateDom(document.getElementById("nav"));
+  // 시트가 열려 있던 상태면 다시 그림 (항목이 지워졌으면 닫음)
+  if (sheetState) { const b = SHEETS[sheetState.kind](sheetState.id); if (b) openSheet(b.html, b.title); else sheetState = null; }
 }
 // 입력 창처럼 render()를 거치지 않고 화면이 바뀌는 경우에도 영어 모드면 글자를 바꿈
 const langObserver = new MutationObserver(() => { if (lang === "en") { translateDom(document.querySelector(".app")); translateDom(document.getElementById("nav")); } });
