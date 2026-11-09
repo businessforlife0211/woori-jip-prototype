@@ -193,8 +193,12 @@ const EN = {
   "언어":"Language", "앱 안의 글자를 바꿔요. 이 기기에만 저장돼요.":"Changes the text in the app. Saved on this device only.",
   "언어를 바꿔도 저장된 물건·음식 기록은 그대로 남아요. 이름이나 메모처럼 직접 적은 글은 번역되지 않아요.":"Changing the language keeps your saved items and food. Text you typed yourself, like names and notes, is not translated.",
   "혼자 쓰기":"Use it alone", "처음 화면으로":"Back to start", "먹고 버린 기록":"Eaten & thrown-away log", "먹음":"Eaten",
-  "이미 예약된 시간이 겹쳐요. 다른 시간을 골라 주세요":"That time overlaps a booking. Please pick another time."
+  "이미 예약된 시간이 겹쳐요. 다른 시간을 골라 주세요":"That time overlaps a booking. Please pick another time.",
+  "기한 지남":"Expired", "오늘 만료":"Expires today", "내일 만료":"Expires tomorrow", "아직 안 함":"— not done yet", "청소":"Cleaning",
+  "지금 담당":"Assigned now", "내 청소":"My cleaning", "곧 만료":"Expiring soon", "부족":"Low", "오늘 할 일이 없어요 🎉":"Nothing to do today 🎉"
 };
+// 알림·상태처럼 글자를 조각내 만든 문장은 조각마다 이 도우미로 영어를 가져옴 (한국어 모드에서는 그대로)
+function en(k){ return lang === "en" && Object.prototype.hasOwnProperty.call(EN, k) ? EN[k] : k; }
 // 표에 있는 문장이면 영어로 바꾸고, 없으면 그대로 둠 (한국어 모드에서는 아무것도 바꾸지 않음)
 function tr(s){ if (lang !== "en") return s; const k = String(s).trim(); return Object.prototype.hasOwnProperty.call(EN, k) ? String(s).replace(k, EN[k]) : s; }
 // 화면 안의 글자와 입력 칸 안내 문구를 영어로 바꿈
@@ -219,7 +223,8 @@ function weekStart(d){ const x = new Date(d); x.setHours(0,0,0,0); x.setDate(x.g
 // 화면에 나오는 모든 날짜는 일/달/년도 순서 (예: 02/11/2026). 저장은 그대로 YYYY-MM-DD
 const p2 = n => String(n).padStart(2, "0");
 function dmyDate(d){ return p2(d.getDate()) + "/" + p2(d.getMonth()+1) + "/" + d.getFullYear(); }
-function fmt(d){ return dmyDate(d) + "(" + DAYS[(d.getDay()+6)%7] + ")"; }
+const DAYS_EN = ["Mon","Tue","Wed","Thu","Fri","Sat","Sun"];
+function fmt(d){ return dmyDate(d) + "(" + (lang === "en" ? DAYS_EN : DAYS)[(d.getDay()+6)%7] + ")"; }
 // 저장된 YYYY-MM-DD 문자열을 DD/MM/YYYY로 바꿔 보여 줌
 function dmy(v){ const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(v || ""); return m ? `${m[3]}/${m[2]}/${m[1]}` : (v || ""); }
 // 앱을 열 때마다 이번 주가 바뀌었는지 확인함 (주 단위 완료 표시를 새로 시작하기 위해 씀)
@@ -389,12 +394,12 @@ function todayHTML(){
   const food = S.items.filter(f => f.expiry && daysLeft(f.expiry) <= 1);
   const low = S.supplies.filter(s => s.level !== "충분");
   const lines = [];
-  if (S.chores.length) lines.push(`📋 지금 담당: ${S.chores.map(c => `${esc(c.task)} ${esc(whoOf(c) || "없음")}`).join(" · ")}`);
-  if (mine.length) lines.push(`🧹 내 청소: ${mine.map(c => esc(c.task)).join(", ")}`);
-  if (food.length) lines.push(`🥛 곧 만료: ${food.map(f => esc(f.name)).join(", ")}`);
-  if (low.length) lines.push(`🧴 부족: ${low.map(s => esc(s.name)).join(", ")}`);
+  if (S.chores.length) lines.push(`📋 ${en("지금 담당")}: ${S.chores.map(c => `${esc(en(c.task))} ${esc(whoOf(c) || en("없음"))}`).join(" · ")}`);
+  if (mine.length) lines.push(`🧹 ${en("내 청소")}: ${mine.map(c => esc(en(c.task))).join(", ")}`);
+  if (food.length) lines.push(`🥛 ${en("곧 만료")}: ${food.map(f => esc(f.name)).join(", ")}`);
+  if (low.length) lines.push(`🧴 ${en("부족")}: ${low.map(s => esc(s.name)).join(", ")}`);
   return `<div class="sec">오늘</div>
-    <div class="card">${lines.length ? lines.map(l => `<div style="padding:4px 0">${l}</div>`).join("") : "오늘 할 일이 없어요 🎉"}</div>
+    <div class="card">${lines.length ? lines.map(l => `<div style="padding:4px 0">${l}</div>`).join("") : en("오늘 할 일이 없어요 🎉")}</div>
     <div class="row wrap" style="margin-bottom:10px">
             <button class="sm ghost" onclick="go('items')">물건 찾기</button>
       <button class="sm ghost" onclick="sub.items='stuff';go('items');showAddItem()">음식 추가</button>
@@ -455,7 +460,7 @@ function resetAll(){
 function itemsView(){ return stuffView(); }
 function stuffView(){
   const soon = S.items.filter(f => f.expiry && daysLeft(f.expiry) <= 1).length;
-  const banner = S.notify.food && soon ? `<div class="card warn">내일 만료되거나 이미 지난 음식이 ${soon}개 있어요.</div>` : "";
+  const banner = S.notify.food && soon ? `<div class="card warn">${lang === "en" ? `${soon} food item(s) expire tomorrow or have already expired.` : `내일 만료되거나 이미 지난 음식이 ${soon}개 있어요.`}</div>` : "";
   return banner + `<input id="itemSearch" placeholder="이름 검색 (예: ㅅ, 쌀, rice)" value="${itemQuery}" oninput="itemQuery=this.value;renderItemList()">
     <div class="seg">${[["location","장소별"],["name","이름별"],["recent","최근순"]].map(([k,l]) => `<button class="sm ${itemView===k?'':'ghost'}" onclick="itemView='${k}';render()">${l}</button>`).join("")}</div>
     <button class="big" onclick="showAddItem()">+ 물건/음식 등록</button>
@@ -499,7 +504,7 @@ function itemRow(i){
   let food = "";
   if (i.expiry) {
     const d = daysLeft(i.expiry);
-    food = `<div class="${d <= 3 ? 'warn' : ''}" style="font-size:13px">${dmy(i.expiry)} · ${d < 0 ? "기한 지남" : d === 0 ? "오늘 만료" : "남은 " + d + "일"}</div>
+    food = `<div class="${d <= 3 ? 'warn' : ''}" style="font-size:13px">${dmy(i.expiry)} · ${d < 0 ? en("기한 지남") : d === 0 ? en("오늘 만료") : (lang === "en" ? d + " days left" : "남은 " + d + "일")}</div>
       <div class="row wrap" style="margin-top:6px">
         <button class="sm ghost" onclick="foodQty(${i.id},-1)">−</button>
         <button class="sm ghost" onclick="foodQty(${i.id},1)">+</button>
@@ -657,7 +662,7 @@ function weekCalendar(){
   }).join("");
   const end = new Date(mon); end.setDate(mon.getDate() + 6);
   return `<div class="sec" style="margin-top:0">이번 주 달력</div><div style="display:flex;gap:4px">${cells}</div>
-    <div class="muted" style="margin:6px 0 10px">${fmt(mon)} ~ ${fmt(end)} · 교대 주기는 항목마다 따로 정해요</div>`;
+    <div class="muted" style="margin:6px 0 10px">${fmt(mon)} ~ ${fmt(end)} · ${lang === "en" ? "each item has its own rotation" : "교대 주기는 항목마다 따로 정해요"}</div>`;
 }
 function toggleChore(id){ const c = S.chores.find(x => x.id === id); c.doneKey = isDone(c) ? null : periodKey(c); save(); render(); }
 // 주방 예약: 시간이 겹치면 막고, 끝난 예약은 자동으로 지움
@@ -674,7 +679,7 @@ function bookingSection(){
       <button class="sm ghost" onclick="cancelBooking(${b.id})">취소</button></div>`).join("");
   return `<div class="sec">주방 예약</div>
     <div class="card">
-      <div class="muted">오늘 ${fmtDay(Date.now())} 기준</div>
+      <div class="muted">${lang === "en" ? `As of today, ${fmtDay(Date.now())}` : `오늘 ${fmtDay(Date.now())} 기준`}</div>
       <div style="display:flex;gap:6px"><div style="flex:1"><label>시작</label><input id="bstart" type="time" value="18:00"></div><div style="flex:1"><label>끝</label><input id="bend" type="time" value="19:00"></div></div>
             <button onclick="addBooking()">예약하기</button>
     </div>
@@ -784,7 +789,7 @@ function nextChangeLabel(c){
   const t = todayN();
   if (c.mode === "fixed") return `<span class="muted">내일</span> <b>${esc(whoOn(c, t + 1) || "담당 없음")}</b>`;
   const every = c.every || 7, left = every - mod(t, every);
-  return `<span class="muted">${left}일 뒤</span> <b>${esc(whoOn(c, t + left) || "담당 없음")}</b>`;
+  return `<span class="muted">${lang === "en" ? `in ${left} days` : `${left}일 뒤`}</span> <b>${esc(whoOn(c, t + left) || "담당 없음")}</b>`;
 }
 function choresView(){
   const modeLabel = c => c.mode === "fixed" ? "요일별 고정" : c.mode === "rota" ? ((c.every || 7) === 7 ? "주 1회 교대" : (c.every || 7) + "일마다 교대") : "한 명 고정";
@@ -798,7 +803,7 @@ function choresView(){
     </div>`).join("");
   const n = people().length;
   const hint = n === 1 ? `<div class="muted" style="margin-bottom:8px">서버 연결 전 시연용이라 지금은 이 기기의 사용자만 담당으로 고를 수 있어요.</div>` : "";
-  const preview = `<div class="sec">다음 교대 미리보기</div>` + S.chores.map(c => `<div class="card" style="font-size:14px">${esc(c.task)}: <span class="muted">지금</span> <b>${esc(whoOf(c) || "담당 없음")}</b> → ${nextChangeLabel(c)}</div>`).join("");
+  const preview = `<div class="sec">다음 교대 미리보기</div>` + S.chores.map(c => `<div class="card" style="font-size:14px">${esc(en(c.task))}: <span class="muted">${en("지금")}</span> <b>${esc(whoOf(c) || "담당 없음")}</b> → ${nextChangeLabel(c)}</div>`).join("");
   return `${todayHTML()}${weekCalendar()}<div class="sec">청소 당번 (이번 주)</div>${hint}${list}${preview}
     <button class="big" onclick="showAddChore()">+ 청소 항목 추가</button><div id="formArea"></div>
     ${kitchenHTML()}`;
@@ -889,8 +894,8 @@ function fridgeView(){
     <div class="row" style="margin-top:8px">${s.photo ? `<img src="${s.photo}" alt="${s.name}" style="width:72px;height:72px;object-fit:cover;border-radius:8px">` : `<div class="thumb" style="width:72px;height:72px">사진 없음</div>`}
       <label style="display:inline-flex;align-items:center;min-height:44px;padding:0 12px;border-radius:10px;background:var(--chip);cursor:pointer">${s.photo ? "사진 바꾸기" : "사진 올리기"}<input type="file" accept="image/*" capture="environment" onchange="setShelfPhoto('${s.id}',this)" style="display:none"></label>
       ${s.photo ? `<button class="sm ghost" onclick="clearShelfPhoto('${s.id}')">삭제</button>` : ""}</div></div>`; }).join("");
-  const supRow = s => `<div class="card row"><div style="flex:1"><b>${esc(s.name)}</b> <span class="tag">${s.level}</span>
-      <div class="muted">${s.price != null ? `£${s.price.toFixed(2)}` : "가격 미입력"}${s.date ? ` · ${dmy(s.date)} 구매` : ""}</div></div>
+  const supRow = s => `<div class="card row"><div style="flex:1"><b>${esc(s.name)}</b> <span class="tag">${en(s.level)}</span>
+      <div class="muted">${s.price != null ? `£${s.price.toFixed(2)}` : en("가격 미입력")}${s.date ? (lang === "en" ? ` · bought ${dmy(s.date)}` : ` · ${dmy(s.date)} 구매`) : ""}</div></div>
     <div class="row"><button class="sm ghost" onclick="cycleSupply(${s.id})">상태 바꾸기</button><button class="sm ghost" onclick="showEditSupply(${s.id})">수정</button><button class="sm ghost" onclick="delSupply(${s.id})">삭제</button></div></div>`;
   const sup = [...new Set(S.supplies.map(s => s.name))].sort((a,b) => a.localeCompare(b,"ko")).map(n => {
     const same = S.supplies.filter(s => s.name === n);
@@ -995,9 +1000,9 @@ function postBoard(){
 function delBoard(id){ S.board = (S.board || []).filter(b => b.id !== id); save(); render(); }
 function alertsView(){
   const food = S.notify.food ? S.items.filter(f => f.expiry && daysLeft(f.expiry) <= 1).map(f => {
-    const d = daysLeft(f.expiry); return `음식: ${esc(f.name)} — ${d < 0 ? "기한 지남" : d === 0 ? "오늘 만료" : "내일 만료"}`; }) : [];
-  const sup = S.notify.supply ? S.supplies.filter(s => s.level !== "충분").map(s => `공용품: ${esc(s.name)} — ${s.level}`) : [];
-  const chore = S.notify.chore ? S.chores.filter(c => !isDone(c)).map(c => `청소: ${esc(c.task)} 아직 안 함`) : [];
+    const d = daysLeft(f.expiry); return `${en("음식")}: ${esc(f.name)} — ${d < 0 ? en("기한 지남") : d === 0 ? en("오늘 만료") : en("내일 만료")}`; }) : [];
+  const sup = S.notify.supply ? S.supplies.filter(s => s.level !== "충분").map(s => `${en("공용품")}: ${esc(s.name)} — ${en(s.level)}`) : [];
+  const chore = S.notify.chore ? S.chores.filter(c => !isDone(c)).map(c => `${en("청소")}: ${esc(en(c.task))} ${en("아직 안 함")}`) : [];
   const all = [...food, ...sup, ...chore];
   return boardHTML() + `<div class="sec">지금 알림</div>
     ${all.length ? all.map(t => `<div class="card">${t}</div>`).join("") : '<div class="card muted">지금 알릴 것이 없어요.</div>'}
