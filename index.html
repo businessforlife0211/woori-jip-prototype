@@ -56,7 +56,8 @@
   /* 내 사용 중은 초록, 다른 사람 사용 중은 주황, 예약은 누가 했든 보라 */
   .tl-use { background:#2e7d6b; }
   .tl-use.tl-other { background:#d08a2e; }
-  .tl-book { background:#4b3f7a; }
+  /* 예약은 연보라 줄무늬 + 테두리로 그려서, 실제 사용 중(진한 초록 단색)과 색과 모양 둘 다 다르게 보이게 함 */
+  .tl-book { background:repeating-linear-gradient(45deg, #d9d2f0 0 5px, #b9aee0 5px 10px); box-shadow: inset 0 0 0 1.5px #4b3f7a; }
   .tl-now { position:absolute; top:0; bottom:0; width:2px; background:var(--text); }
   .tl-hours { position:relative; height:16px; font-size:11px; color:var(--muted); margin-top:2px; }
   .tl-hours span { position:absolute; transform:translateX(-50%); }
@@ -177,7 +178,7 @@ const EN = {
   "시연용: 이 기기 안에만 저장돼요. 룸메이트 기기에는 아직 보이지 않아요.":"Demo: saved on this device only. Not visible on your roommate's device yet.",
   "주방 예약":"Kitchen booking", "예약하기":"Book", "시작":"Start", "끝":"End", "예약이 없어요.":"No bookings.",
   "오늘은 예약도 사용 중인 사람도 없어요.":"No bookings or users today.",
-  "초록 = 내가 사용 중 · 주황 = 다른 사람 사용 중 · 보라 = 예약 · 흰 선 = 사용 시작":"Green = me using · Orange = someone else · Purple = booked · White line = start",
+  "초록 = 내가 사용 중 · 주황 = 다른 사람 사용 중 · 보라 줄무늬 = 예약 · 흰 선 = 사용 시작":"Green = me using · Orange = someone else · Striped purple = booked · White line = start",
   "시작과 끝 시간을 적어 주세요":"Please enter start and end times", "끝 시간은 시작 시간보다 뒤여야 해요":"End time must be after start time",
   "지난 시간은 예약할 수 없어요":"You can't book a past time", "내용을 적어 주세요":"Please write something",
   "특정한 사람을 가리키는 말은 적을 수 없어요. 물건이나 칸, 상황으로 적어 주세요":"You can't write about a specific person. Write about items, spaces or situations.",
@@ -685,7 +686,7 @@ function bookingSection(){
   return `<div class="sec">주방 예약</div>
     <div class="card">
       <div class="muted">${lang === "en" ? `As of today, ${fmtDay(Date.now())}` : `오늘 ${fmtDay(Date.now())} 기준`}</div>
-      <div style="display:flex;gap:6px"><div style="flex:1"><label>시작</label><input id="bstart" type="time" value="18:00"></div><div style="flex:1"><label>끝</label><input id="bend" type="time" value="19:00"></div></div>
+      <div style="display:flex;gap:6px"><div style="flex:1;min-width:0"><label>시작</label><input id="bstart" type="time" value="18:00" style="width:100%;min-width:0;box-sizing:border-box"></div><div style="flex:1;min-width:0"><label>끝</label><input id="bend" type="time" value="19:00" style="width:100%;min-width:0;box-sizing:border-box"></div></div>
             <button onclick="addBooking()">예약하기</button>
     </div>
     ${list || '<div class="card muted">예약이 없어요.</div>'}`;
@@ -748,7 +749,7 @@ function timelineHTML(){
   const hours = [0, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22, 24].map(h => `<span style="left:${h / 24 * 100}%">${h}시</span>`).join("");
   return `<div class="tl" id="tlBox">${body}
     <div class="tl-axis"><div class="tl-hours">${hours}</div></div>
-    <div class="muted" style="font-size:12px;margin-top:4px">초록 = 내가 사용 중 · 주황 = 다른 사람 사용 중 · 보라 = 예약 · 흰 선 = 사용 시작</div></div>`;
+    <div class="muted" style="font-size:12px;margin-top:4px">초록 = 내가 사용 중 · 주황 = 다른 사람 사용 중 · 보라 줄무늬 = 예약 · 흰 선 = 사용 시작</div></div>`;
 }
 function toggleUse(){
   const mine = S.me || "나";
