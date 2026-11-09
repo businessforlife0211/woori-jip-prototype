@@ -7,7 +7,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="theme-color" content="#f4f5f7">
-<title>우리 집 프로토타입 v15</title>
+<title>우리 집 프로토타입 v16</title>
 <style>
   :root { --main:#2e7d6b; --bg:#f4f5f7; --card:#ffffff; --text:#1d1d1f; --muted:#6e6e73; --warn:#d93a3a; --line:#e3e4e8; --chip:#ebecf0; --edge:#c9cad2; }
   * { box-sizing:border-box; }
@@ -188,7 +188,7 @@ const EN = {
   "특정한 사람을 가리키는 말은 적을 수 없어요. 물건이나 칸, 상황으로 적어 주세요":"You can't write about a specific person. Write about items, spaces or situations.",
   "공간":"Spaces", "공용품":"Shared supplies", "+ 칸 추가":"+ Add space", "+ 공용품 추가":"+ Add supply",
   "여러 명을 골라도 돼요":"You can pick more than one person", "쓰는 사람":"Who uses it", "이름 바꾸기":"Rename", "칸 삭제":"Delete space",
-  "사진 바꾸기":"Change photo", "사진 올리기":"Add photo", "사진 지우기":"Remove photo", "구매일 (선택)":"Purchase date (optional)", "예: 우리 집":"e.g. Our home", "칸 이름":"Space name", "종류":"Type", "종류를 골라 주세요":"Please choose a type", "종류 없음":"No type", "종류 고르기":"Choose a type", "종류 미정":"Type not set", "냉장고":"Fridge",
+  "사진 바꾸기":"Change photo", "사진 올리기":"Add photo", "사진 지우기":"Remove photo", "탭하면 닫혀요":"Tap to close", "구매일 (선택)":"Purchase date (optional)", "예: 우리 집":"e.g. Our home", "칸 이름":"Space name", "종류":"Type", "종류를 골라 주세요":"Please choose a type", "종류 없음":"No type", "종류 고르기":"Choose a type", "종류 미정":"Type not set", "냉장고":"Fridge",
   "이름 적기 (예: 욕실)":"Type name (e.g. bathroom)", "예: 우상 칸, 찬장":"e.g. Alex's space, cupboard",
   "냉장":"Fridge", "냉동":"Freezer", "가격 미입력":"No price", "상태 바꾸기":"Change status", "충분":"Enough", "적음":"Low", "없음":"None",
   "품목 이름":"Item name", "예: 주방세제":"e.g. washing-up liquid", "주방세제":"Washing-up liquid", "스펀지":"Sponge", "쓰레기봉투":"Bin bags",
@@ -562,12 +562,23 @@ function shrinkPhoto(file, max){
     reader.readAsDataURL(file);
   });
 }
-function pickItemPhoto(el){ const f = el.files && el.files[0]; photoPick = f ? shrinkPhoto(f, 240) : null; }
+function pickItemPhoto(el){ const f = el.files && el.files[0]; photoPick = f ? shrinkPhoto(f, 480) : null; }
 // 물건 사진 칸: 사진이 있으면 보여 주고, 없으면 회색 칸
 function thumbHTML(i){
   return i.photo
-    ? `<img src="${i.photo}" alt="" style="width:64px;height:64px;object-fit:cover;border-radius:8px;flex-shrink:0">`
+    ? `<img src="${i.photo}" alt="" onclick="showPhoto(this.src)" style="width:64px;height:64px;object-fit:cover;border-radius:8px;flex-shrink:0;cursor:zoom-in">`
     : `<div class="thumb" style="width:64px;height:64px">${en("사진 없음")}</div>`;
+}
+// 물건 사진 크게 보기: 화면 전체에 띄우고, 누르면 닫힘. 목록을 다시 그려도 사라지지 않도록 화면 바깥(body)에 붙임
+function showPhoto(src){
+  const old = document.getElementById("photoBig"); if (old) old.remove();
+  const box = document.createElement("div");
+  box.id = "photoBig";
+  box.style.cssText = "position:fixed;inset:0;z-index:100;background:rgba(0,0,0,.92);display:flex;align-items:center;justify-content:center;padding:16px;box-sizing:border-box;cursor:zoom-out";
+  box.innerHTML = `<img src="${src}" alt="" style="max-width:100%;max-height:100%;object-fit:contain;border-radius:10px">`
+    + `<div style="position:absolute;bottom:calc(20px + env(safe-area-inset-bottom));left:0;right:0;text-align:center;color:#fff;font-size:14px;opacity:.8">${en("탭하면 닫혀요")}</div>`;
+  box.onclick = () => box.remove();
+  document.body.appendChild(box);
 }
 // 유통기한은 연도 4자리(예: 2026-12-01)만 허용. 비어 있으면 괜찮음
 function okExpiry(v){ return !v || /^\d{4}-\d{2}-\d{2}$/.test(v); }
