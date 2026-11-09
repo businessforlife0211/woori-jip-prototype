@@ -7,7 +7,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="theme-color" content="#f4f5f7">
-<title>우리 집 프로토타입 v23</title>
+<title>우리 집 프로토타입 v24</title>
 <style>
   :root { --main:#2e7d6b; --bg:#f4f5f7; --card:#ffffff; --text:#1d1d1f; --muted:#6e6e73; --warn:#d93a3a; --line:#e3e4e8; --chip:#ebecf0; --edge:#c9cad2; }
   * { box-sizing:border-box; }
@@ -118,7 +118,7 @@ function load(){
     return loaded;
   } catch(e) { return structuredClone(DEF); }
 }
-function save(){ try { localStorage.setItem(KEY, JSON.stringify(S)); } catch(e){ window.alert("저장 공간이 가득 찼어요. 사진을 줄이거나 지워 주세요"); } }
+function save(){ try { localStorage.setItem(KEY, JSON.stringify(S)); shareState(); } catch(e){ window.alert("저장 공간이 가득 찼어요. 사진을 줄이거나 지워 주세요"); } }
 let S = load();
 // 미리보기 환경에서는 alert/prompt/confirm이 막힐 수 있어서, 경고는 화면 안에 표시
 // 안내 문구는 0.8초 뒤에 부드럽게 흐려지며 사라짐
@@ -189,7 +189,12 @@ const EN = {
   "특정한 사람을 가리키는 말은 적을 수 없어요. 물건이나 칸, 상황으로 적어 주세요":"You can't write about a specific person. Write about items, spaces or situations.",
   "공간":"Spaces", "공용품":"Shared supplies", "+ 칸 추가":"+ Add space", "+ 공용품 추가":"+ Add supply",
   "여러 명을 골라도 돼요":"You can pick more than one person", "쓰는 사람":"Who uses it", "이름 바꾸기":"Rename", "칸 삭제":"Delete space",
-  "사진 바꾸기":"Change photo", "사진 올리기":"Add photo", "사진 지우기":"Remove photo", "사진을 골랐어요":"Photo selected", "사진 찍기":"Take photo", "사진 보관함":"Photo library", "탭하면 닫혀요":"Tap to close", "구매일 (선택)":"Purchase date (optional)", "예: 우리 집":"e.g. Our home", "칸 이름":"Space name", "종류":"Type", "종류를 골라 주세요":"Please choose a type", "종류 없음":"No type", "종류 고르기":"Choose a type", "종류 미정":"Type not set", "냉장고":"Fridge",
+  "사진 바꾸기":"Change photo", "사진 올리기":"Add photo", "사진 지우기":"Remove photo", "사진을 골랐어요":"Photo selected",
+  "인터넷 연결을 확인해 주세요. 연결되면 다시 눌러 주세요":"Check your internet connection, then tap again.",
+  "인터넷 연결을 확인해 주세요":"Please check your internet connection.",
+  "초대 코드를 다시 확인해 주세요":"Please check the invite code.",
+  "링크 복사":"Copy link", "초대 링크 만들기":"Create invite link",
+  "우리 집 앱에 들어오세요. 아래 링크를 누르면 바로 들어와요 (앱 설치 필요 없음)":"Join our home app. Tap the link below to join right away (no app install needed).", "사진 찍기":"Take photo", "사진 보관함":"Photo library", "탭하면 닫혀요":"Tap to close", "구매일 (선택)":"Purchase date (optional)", "예: 우리 집":"e.g. Our home", "칸 이름":"Space name", "종류":"Type", "종류를 골라 주세요":"Please choose a type", "종류 없음":"No type", "종류 고르기":"Choose a type", "종류 미정":"Type not set", "냉장고":"Fridge",
   "이름 적기 (예: 욕실)":"Type name (e.g. bathroom)", "예: 우상 칸, 찬장":"e.g. Alex's space, cupboard",
   "냉장":"Fridge", "냉동":"Freezer", "가격 미입력":"No price", "상태 바꾸기":"Change status", "충분":"Enough", "적음":"Low", "없음":"None",
   "품목 이름":"Item name", "예: 주방세제":"e.g. washing-up liquid", "주방세제":"Washing-up liquid", "스펀지":"Sponge", "쓰레기봉투":"Bin bags",
@@ -223,9 +228,96 @@ function setLang(l){ lang = l === "en" ? "en" : "ko"; try { localStorage.setItem
 const sub = {items:"stuff", fridge:"shelves"};
 let itemQuery = "", itemView = "location";
 
+// ===== 서버 (Supabase): 집 데이터를 공유하고, 초대 링크로 들어옴 =====
+const SB_URL = "https://redmrqgdndzbkvtbrngh.supabase.co";
+const SB_KEY = "sb_publishable_8hsqP4dUlsQCGuOjJIo7CA_QlrVTWqY";
+// 집 전체가 함께 보이는 항목. 나(이름), 시작 화면, 언어는 기기마다 따로 둠
+const SHARED = ["houseName","members","items","foods","chores","spaces","supplies","notify","board","weekKey","bookings","users","log","spots","kitchen"];
+let lastStamp = null, pushTimer = null, pushing = false, pushAgain = false, changeNo = 0, pushedNo = 0;
+async function rpc(fn, body){
+  const r = await fetch(`${SB_URL}/rest/v1/rpc/${fn}`, {method: "POST", headers: {apikey: SB_KEY, "Content-Type": "application/json"}, body: JSON.stringify(body)});
+  const text = await r.text();
+  if (!r.ok) { let msg = text; try { msg = JSON.parse(text).message || text; } catch(e) {} throw new Error(msg); }
+  return text ? JSON.parse(text) : null;
+}
+function sharedSnapshot(){ const o = {}; SHARED.forEach(k => { o[k] = S[k]; }); return o; }
+function applyShared(state){ if (state) SHARED.forEach(k => { if (k in state) S[k] = state[k]; }); }
+// 초대 코드: 헷갈리는 글자(0, O, 1, I)는 뺌
+const CODE_CHARS = "ABCDEFGHJKMNPQRSTUVWXYZ23456789";
+function newCode(){ let c = ""; for (let i = 0; i < 6; i++) c += CODE_CHARS[Math.floor(Math.random() * CODE_CHARS.length)]; return c; }
+// 바뀐 내용은 잠깐 모았다가 한 번에 올림
+function shareState(){
+  if (!S.serverCode) return;
+  changeNo++; clearTimeout(pushTimer); pushTimer = setTimeout(pushNow, 600);
+}
+async function pushNow(){
+  if (!S.serverCode) return;
+  if (pushing) { pushAgain = true; return; }
+  pushing = true; const mark = changeNo;
+  try { lastStamp = await rpc("save_house", {p_code: S.serverCode, p_state: sharedSnapshot()}); pushedNo = mark; }
+  catch(e) { clearTimeout(pushTimer); pushTimer = setTimeout(pushNow, 15000); }
+  finally { pushing = false; if (pushAgain) { pushAgain = false; pushNow(); } }
+}
+const unsynced = () => changeNo !== pushedNo;
+// 입력 중이거나 폼이 열려 있으면 다시 그리지 않음 (입력한 내용이 사라지지 않게)
+function busyTyping(){
+  const a = document.activeElement;
+  if (a && ["INPUT", "SELECT", "TEXTAREA"].includes(a.tagName)) return true;
+  const f = document.getElementById("formArea"); if (f && f.innerHTML.trim()) return true;
+  return !!(editing || pending !== null || shelfEdit || shelfRename);
+}
+// 다른 기기에서 바뀐 것이 있으면 가져옴. 먼저 변경 시각만 확인해서 바뀐 때만 전체를 받음
+async function pullNow(){
+  if (!S.serverCode || unsynced() || pushing || busyTyping()) return;
+  try {
+    const stamp = await rpc("house_stamp", {p_code: S.serverCode});
+    if (!stamp || stamp === lastStamp) return;
+    const rows = await rpc("get_house", {p_code: S.serverCode});
+    const row = rows && rows[0];
+    if (!row || unsynced()) return;
+    applyShared(row.state); lastStamp = row.updated_at;
+    try { localStorage.setItem(KEY, JSON.stringify(S)); } catch(e) {}
+    render();
+  } catch(e) {}
+}
+// 집을 서버에 처음 만듦 (혼자 쓰던 데이터도 함께 올라감). 코드가 겹치면 다시 만듦
+async function ensureServerHouse(){
+  if (S.serverCode) return true;
+  for (let k = 0; k < 5; k++) {
+    const code = newCode();
+    try {
+      await rpc("create_house", {p_code: code, p_name: S.houseName || "우리 집", p_state: sharedSnapshot()});
+      S.serverCode = code; S.inviteCode = code;
+      lastStamp = await rpc("house_stamp", {p_code: code});
+      save(); return true;
+    } catch(e) { if (!/code taken/.test(e.message)) break; }
+  }
+  window.alert("인터넷 연결을 확인해 주세요. 연결되면 다시 눌러 주세요");
+  return false;
+}
+// 초대 링크 열었을 때: 집 이름을 확인하고 내 이름을 받음
+async function showJoinForm(code){
+  let row = null;
+  try { row = (await rpc("get_house", {p_code: code}))[0] || null; }
+  catch(e) { window.alert("인터넷 연결을 확인해 주세요"); return; }
+  if (!row) { window.alert("초대 코드를 다시 확인해 주세요"); return; }
+  document.getElementById("formArea").innerHTML = `<div class="card">
+    <div>집 확인: <b>${esc(row.name)}</b></div>
+    <label>내 이름</label><input id="jname" placeholder="예: 우상">
+    <button onclick="joinHouse('${code}')">참여하기</button></div>`;
+}
+// 페이지를 열 때: 초대 링크가 있으면 참여 화면, 그 뒤로 10초마다 다른 기기의 변경을 확인
+function startUp(){
+  const code = new URLSearchParams(location.search).get("join");
+  if (code && !S.started && /^[A-Z0-9]{6}$/i.test(code)) showJoinForm(code.toUpperCase());
+  setInterval(pullNow, 10000);
+  document.addEventListener("visibilitychange", () => { if (!document.hidden) pullNow(); });
+  pullNow();
+}
+
 // ===== 공통 도우미 =====
 const uid = () => Date.now() + Math.random();
-const makeCode = () => Math.random().toString(36).slice(2,8).toUpperCase();
+const makeCode = () => newCode();
 const minsSince = t => Math.round((Date.now() - t) / 60000);
 // 주 단위 도우미: 월요일이 담당 교체일
 const DAYS = ["월","화","수","목","금","토","일"];
@@ -367,54 +459,65 @@ function showCreate(){
     <label>내 이름 또는 방 번호</label><input id="mine" placeholder="예: 301 또는 우상">
     <button onclick="createHouse()">만들기</button></div>`;
 }
-function createHouse(){
+async function createHouse(){
   const name = document.getElementById("hn").value.trim();
-  if(!name){ alert("집 이름을 입력하세요"); return; }
-  S.started = true; S.mode = "house"; S.houseName = name; S.inviteCode = makeCode();
+  if(!name){ window.alert("집 이름을 입력하세요"); return; }
   const mine = (document.getElementById("mine").value || "").trim();
-  if(!mine){ window.alert("내 이름 또는 방 번호를 적어 주세요"); S.started = false; return; }
-  S.me = mine;
-  const others = []; // 룸메이트는 초대 코드로만 참여
-  S.members = [...new Set([mine, ...others])];
-  tab = "home"; save(); render();
+  if(!mine){ window.alert("내 이름 또는 방 번호를 적어 주세요"); return; }
+  S.houseName = name; S.me = mine; S.members = [mine]; S.mode = "house";
+  S.serverCode = ""; S.inviteCode = "";
+  if (!(await ensureServerHouse())) return;
+  S.started = true; tab = "home"; save(); render();
 }
 function showJoin(){
   document.getElementById("formArea").innerHTML = `<div class="card">
     <label>초대 코드</label><input id="jcode" placeholder="예: AB12CD">
     <button onclick="checkCode()">확인</button></div>`;
 }
-// 코드 확인 단계: 집 정보를 보여 준 뒤 내 이름을 받는다
-function checkCode(){
-  const c = document.getElementById("jcode").value.trim().toUpperCase();
-  if(!c){ alert("코드를 입력하세요"); return; }
-  document.getElementById("formArea").innerHTML = `<div class="card">
-    <div>집 확인: <b>예시 집 (프로토타입)</b></div>
-    <div class="muted">실제 서버를 붙이면 실제 집 이름이 나옵니다.</div>
-    <label>내 이름</label><input id="jname" placeholder="예: 우상">
-    <button onclick="joinHouse('${c}')">참여하기</button></div>`;
+// 초대 코드 입력 단계: 서버에서 집 이름을 찾아 보여 준 뒤 내 이름을 받음
+async function checkCode(){
+  const c = (document.getElementById("jcode").value || "").trim().toUpperCase();
+  if(!c){ window.alert("코드를 입력하세요"); return; }
+  await showJoinForm(c);
 }
-function joinHouse(code){
-  const name = document.getElementById("jname").value.trim();
-  if(!name){ alert("내 이름을 입력하세요"); return; }
-  S.started = true; S.mode = "house"; S.inviteCode = code; S.houseName = "예시 집 (프로토타입)"; S.members = [name]; S.me = name;
-  tab = "home"; save(); render();
+// 참여: 집 데이터를 받고, 내 이름을 명단에 올림
+async function joinHouse(code){
+  const name = (document.getElementById("jname").value || "").trim();
+  if(!name){ window.alert("내 이름을 입력하세요"); return; }
+  let row = null;
+  try { row = (await rpc("get_house", {p_code: code}))[0] || null; }
+  catch(e) { window.alert("인터넷 연결을 확인해 주세요"); return; }
+  if (!row) { window.alert("초대 코드를 다시 확인해 주세요"); return; }
+  applyShared(row.state);
+  S.serverCode = code; S.inviteCode = code; S.houseName = row.name;
+  S.me = name; S.mode = "house";
+  S.members = [...new Set([...(S.members || []), name])];
+  S.started = true; tab = "home";
+  lastStamp = row.updated_at;
+  save(); render();
+  history.replaceState(null, "", location.pathname);
 }
-// 혼자 쓰던 사람이 나중에 룸메이트를 초대할 때
-// 혼자 쓰던 사람이 초대할 때는 먼저 내 이름이나 방 번호를 적는다
-function startInvite(){
+// 혼자 쓰던 사람이 나중에 룸메이트를 초대할 때: 내 이름을 먼저 적고, 집을 서버에 만든 뒤 초대 링크를 보여 줌
+async function startInvite(){
   if(!S.me){
     document.getElementById("formArea").innerHTML = `<div class="card">
       <label>내 이름 또는 방 번호</label><input id="mein" placeholder="예: 301 또는 우상">
-      <button onclick="saveMeAndInvite()">초대 코드 만들기</button></div>`;
+      <button onclick="saveMeAndInvite()">초대 링크 만들기</button></div>`;
     return;
   }
-  S.mode = "house"; S.houseName = S.houseName || "우리 집"; S.inviteCode = S.inviteCode || makeCode(); save(); render();
+  await makeInvite();
 }
-function saveMeAndInvite(){
+async function saveMeAndInvite(){
   const v = (document.getElementById("mein").value || "").trim();
   if(!v){ window.alert("내 이름 또는 방 번호를 적어 주세요"); return; }
-  S.me = v; S.members = [v]; S.mode = "house"; S.houseName = S.houseName || "우리 집";
-  S.inviteCode = S.inviteCode || makeCode(); save(); render();
+  S.me = v;
+  await makeInvite();
+}
+async function makeInvite(){
+  S.houseName = S.houseName || "우리 집";
+  S.members = [...new Set([S.me, ...(S.members || [])])];
+  if (!(await ensureServerHouse())) return;
+  S.mode = "house"; save(); render();
 }
 // 홈의 "오늘" 카드: 흩어진 기능(청소, 음식, 공용품, 주방)을 한 화면에서 이어 줌
 function todayHTML(){
@@ -441,7 +544,7 @@ function homeView(){
   return `<div id="formArea"></div>
     ${todayHTML()}
     <div class="card"><b>${esc(S.houseName || "내 물건과 음식")}</b>
-      <div class="muted">${solo ? "혼자 쓰는 중" : `초대 코드 ${S.inviteCode} · 서버 연결 전 시연용`}</div></div>
+      <div class="muted">${solo ? "혼자 쓰는 중" : `초대 코드 ${S.inviteCode}`}</div></div>
     ${solo ? `<button class="big" onclick="startInvite()">룸메이트 초대하기</button>` : inviteBox()}
     ${S.items.length ? "" : `<div class="card"><b>처음이라면</b>
       <div class="muted" style="margin-top:4px">"물건·음식" 탭에서 어디 뒀는지 적어 보세요. 사진은 선택이에요.</div></div>`}
@@ -449,14 +552,16 @@ function homeView(){
     <button class="ghost big" onclick="resetAll()">${resetArmed ? "한 번 더 누르면 모두 지워져요" : "데이터 초기화"}</button>`;
 }
 // 초대 카드: 코드 표시, 복사, 공유 창 (인스타 DM, 카카오톡 등 설치된 앱 선택 가능)
-function inviteText(){ return `우리 집 앱 초대 코드: ${S.inviteCode}`; }
+function inviteLink(){ return `${location.origin}${location.pathname}?join=${S.serverCode || S.inviteCode}`; }
+function inviteText(){ return en("우리 집 앱에 들어오세요. 아래 링크를 누르면 바로 들어와요 (앱 설치 필요 없음)") + "\n" + inviteLink(); }
 function inviteBox(){
   return `<div class="card">
     <div class="muted">초대 코드</div>
-    <div style="font-size:26px;font-weight:700;letter-spacing:3px;margin:4px 0 10px">${S.inviteCode}</div>
+    <div style="font-size:26px;font-weight:700;letter-spacing:3px;margin:4px 0 6px">${S.inviteCode}</div>
+    <div class="muted" style="font-size:12px;word-break:break-all;margin-bottom:10px">${esc(inviteLink())}</div>
     <div class="row wrap">
       <button onclick="shareInvite()">공유하기 (왓츠앱, 인스타, 카톡 등)</button>
-      <button class="ghost" onclick="copyInvite()">코드 복사</button>
+      <button class="ghost" onclick="copyInvite()">링크 복사</button>
     </div>
     <div id="inviteMsg" class="muted" style="margin-top:6px"></div>
   </div>`;
@@ -815,7 +920,7 @@ function kitchenHTML(){
     ${S.users.some(u => u.who === (S.me || "나")) ? '<button class="big" style="background:#2e7d6b" onclick="toggleUse()">사용 끝</button>' : '<button class="big" onclick="toggleUse()">사용 시작</button>'}
     <div class="muted">2시간 이상 사용 중이면 자동으로 빠집니다.</div>
     <div class="muted">10분 이하로 잠깐 쓰는 경우는 굳이 사용 시작을 누르지 않아도 돼요.</div>
-    <div class="muted">시연용: 이 기기 안에만 저장돼요. 룸메이트 기기에는 아직 보이지 않아요.</div>${bookingSection()}`;
+    ${bookingSection()}`;
 }
 // 같은 버튼이 시작과 끝을 겸함. 같은 사람이 여러 번 눌러도 한 번만 기록됨
 // 오늘 시간표: 사람마다 한 줄씩 그림. 예약은 보라, 사용 중은 초록, 흰 선은 사용을 시작한 시점
@@ -901,7 +1006,7 @@ function choresView(){
     ${scheduleBlock(c)}
     </div>`).join("");
   const n = people().length;
-  const hint = n === 1 ? `<div class="muted" style="margin-bottom:8px">서버 연결 전 시연용이라 지금은 이 기기의 사용자만 담당으로 고를 수 있어요.</div>` : "";
+  const hint = n === 1 && !S.serverCode ? `<div class="muted" style="margin-bottom:8px">서버 연결 전 시연용이라 지금은 이 기기의 사용자만 담당으로 고를 수 있어요.</div>` : "";
   const preview = `<div class="sec">다음 교대 미리보기</div>` + S.chores.map(c => `<div class="card" style="font-size:14px">${esc(en(c.task))}: <span class="muted">${en("지금")}</span> <b>${esc(whoOf(c) || "담당 없음")}</b> → ${nextChangeLabel(c)}</div>`).join("");
   // 주방 사용은 이번 주 달력과 청소 당번 사이에 둠
   return `${todayHTML()}${weekCalendar()}${kitchenHTML()}<div class="sec">청소 당번 (이번 주)</div>${hint}${list}${preview}
@@ -1221,6 +1326,7 @@ const langObserver = new MutationObserver(() => { if (lang === "en") { translate
 langObserver.observe(document.querySelector(".app"), {childList: true, subtree: true});
 langObserver.observe(document.getElementById("nav"), {childList: true, subtree: true});
 render();
+startUp();
 </script>
 </body>
 </html>
