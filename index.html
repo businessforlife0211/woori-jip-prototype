@@ -96,7 +96,7 @@ const DEF = {
     {id:3, task:"바닥 청소", who:"", done:false, photo:false}
   ],
   kitchen:{inUse:false, who:"", since:null},
-  spaces:[{id:"s1",name:"1번 선반",owners:[],tag:""},{id:"s2",name:"2번 선반",owners:[],tag:""},{id:"s3",name:"3번 선반",owners:[],tag:""},{id:"s4",name:"공용 칸",owners:[],tag:""}],
+  spaces:[{id:"s1",name:"1번 선반",owners:[],tag:"냉장"},{id:"s2",name:"2번 선반",owners:[],tag:"냉장"},{id:"s3",name:"3번 선반",owners:[],tag:"냉장"},{id:"s4",name:"공용 칸",owners:[],tag:"서랍"}],
   supplies:[
     {id:1, name:"주방세제", level:"충분", price:null, date:""},
     {id:2, name:"스펀지", level:"충분", price:null, date:""},
@@ -110,7 +110,11 @@ function load(){
     const raw = JSON.parse(localStorage.getItem(KEY) || "{}");
     if (raw.shelves && !raw.spaces) raw.spaces = raw.shelves.map(x => ({id: "s" + Math.random().toString(36).slice(2, 10), name: x.name, owners: Array.isArray(x.owners) ? x.owners : (x.owner ? [x.owner] : []), tag: "", photo: x.photo}));
     delete raw.shelves;
-    return Object.assign(structuredClone(DEF), raw);
+    const loaded = Object.assign(structuredClone(DEF), raw);
+    // 처음부터 있던 칸 4개에 종류를 정해 줌 (예전에 저장된 데이터는 종류가 비어 있으므로 여기서 채움)
+    const DEFAULT_TAG = {s1:"냉장", s2:"냉장", s3:"냉장", s4:"서랍"};
+    (loaded.spaces || []).forEach(s => { if (!s.tag && DEFAULT_TAG[s.id]) s.tag = DEFAULT_TAG[s.id]; });
+    return loaded;
   } catch(e) { return structuredClone(DEF); }
 }
 function save(){ try { localStorage.setItem(KEY, JSON.stringify(S)); } catch(e){ window.alert("저장 공간이 가득 찼어요. 사진을 줄이거나 지워 주세요"); } }
@@ -184,7 +188,7 @@ const EN = {
   "특정한 사람을 가리키는 말은 적을 수 없어요. 물건이나 칸, 상황으로 적어 주세요":"You can't write about a specific person. Write about items, spaces or situations.",
   "공간":"Spaces", "공용품":"Shared supplies", "+ 칸 추가":"+ Add space", "+ 공용품 추가":"+ Add supply",
   "여러 명을 골라도 돼요":"You can pick more than one person", "쓰는 사람":"Who uses it", "이름 바꾸기":"Rename", "칸 삭제":"Delete space",
-  "사진 바꾸기":"Change photo", "사진 올리기":"Add photo", "칸 이름":"Space name", "종류":"Type", "종류를 골라 주세요":"Please choose a type", "종류 없음":"No type",
+  "사진 바꾸기":"Change photo", "사진 올리기":"Add photo", "칸 이름":"Space name", "종류":"Type", "종류를 골라 주세요":"Please choose a type", "종류 없음":"No type", "종류 고르기":"Choose a type", "종류 미정":"Type not set",
   "이름 적기 (예: 욕실)":"Type name (e.g. bathroom)", "예: 희섭 칸, 찬장":"e.g. Hee-seop's space, cupboard",
   "냉장":"Fridge", "냉동":"Freezer", "가격 미입력":"No price", "상태 바꾸기":"Change status", "충분":"Enough", "적음":"Low", "없음":"None",
   "품목 이름":"Item name", "예: 주방세제":"e.g. washing-up liquid", "주방세제":"Washing-up liquid", "스펀지":"Sponge", "쓰레기봉투":"Bin bags",
@@ -852,7 +856,7 @@ function tagSelect(elId, cur){
   const std = TAGS.includes(cur);
   const selVal = !cur ? "" : (std ? cur : "기타");
   const custom = std || !cur ? "" : cur;
-  return `<span class="row wrap" style="gap:6px"><select id="${elId}" onchange="this.parentElement.querySelector('input').style.display = this.value === '기타' ? '' : 'none'">${TAGS.map(t => `<option value="${t}" ${t === selVal ? "selected" : ""}>${t || "종류 없음"}</option>`).join("")}</select>
+  return `<span class="row wrap" style="gap:6px"><select id="${elId}" onchange="this.parentElement.querySelector('input').style.display = this.value === '기타' ? '' : 'none'">${TAGS.map(t => `<option value="${t}" ${t === selVal ? "selected" : ""}>${t || "종류 고르기"}</option>`).join("")}</select>
     <input id="${elId}Custom" value="${esc(custom)}" placeholder="이름 적기 (예: 욕실)" style="${selVal === '기타' ? '' : 'display:none'};flex:1;min-width:120px"></span>`;
 }
 // 고른 종류를 저장할 글자로 바꿈. '기타'면 직접 적은 이름을 씀 (비어 있으면 '기타')
@@ -889,11 +893,11 @@ function shelfBlock(s){
     <div class="row" style="margin-top:8px"><button class="sm" onclick="confirmShelf()">확인</button><button class="sm ghost" onclick="cancelShelf()">취소</button></div>`;
 }
 function fridgeView(){
-  // 종류마다 따로 묶음: 냉장·냉동·서랍을 먼저 보여 주고, 직접 적은 종류(찬장, 박스 등)는 종류별로 각각 묶음, 종류 없음은 맨 뒤
-  const groupOf = s => s.tag || "종류 없음";
+  // 종류마다 따로 묶음: 냉장·냉동·서랍을 먼저 보여 주고, 직접 적은 종류(찬장, 박스 등)는 종류별로 각각 묶음, 종류가 정해지지 않은 칸은 맨 뒤
+  const groupOf = s => s.tag || "종류 미정";
   const std = ["냉장","냉동","서랍"];
   const others = [...new Set(S.spaces.map(s => s.tag).filter(t => t && !std.includes(t)))];
-  const order = [...std, ...others, "종류 없음"];
+  const order = [...std, ...others, "종류 미정"];
   const sorted = [...S.spaces].sort((a, b) => order.indexOf(groupOf(a)) - order.indexOf(groupOf(b)));
   let lastGroup = null;
   const shelves = sorted.map((s) => { const g = groupOf(s); const head = g !== lastGroup ? `<div class="sec" style="margin-top:12px">${g}</div>` : ""; lastGroup = g; return head + `<div class="card">${shelfRename === s.id
