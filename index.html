@@ -30,8 +30,9 @@
   .seg { display:flex; gap:6px; margin:8px 0; }
   .seg button { flex:1; }
   .thumb { width:48px; height:48px; border-radius:8px; background:var(--line); display:flex; align-items:center; justify-content:center; font-size:11px; color:var(--muted); flex-shrink:0; }
-  nav { position:fixed; bottom:0; left:50%; transform:translateX(-50%); width:100%; max-width:430px; background:var(--card); display:flex; border-top:1px solid var(--line); padding-bottom:env(safe-area-inset-bottom); }
-  nav button { flex:1; border-radius:0; background:transparent; color:var(--muted); padding:10px 0; font-size:12px; min-height:56px; }
+  /* 탭 바 좌우에 여백을 줘서 아이폰 모서리 곡선에 글자가 걸리지 않게 함 */
+  nav { position:fixed; bottom:0; left:50%; transform:translateX(-50%); width:100%; max-width:430px; background:var(--card); display:flex; border-top:1px solid var(--line); padding:0 16px env(safe-area-inset-bottom); box-sizing:border-box; }
+  nav button { flex:1; min-width:0; border-radius:0; background:transparent; color:var(--muted); padding:10px 0; font-size:12px; min-height:56px; }
   nav button.on { color:var(--text); font-weight:700; }
   .tl { margin:6px 0 12px; }
   .tl-bar { position:relative; height:22px; background:var(--chip); border-radius:8px; overflow:hidden; }
