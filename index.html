@@ -7,7 +7,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="theme-color" content="#f4f5f7">
-<title>우리 집 프로토타입 v14</title>
+<title>우리 집 프로토타입 v15</title>
 <style>
   :root { --main:#2e7d6b; --bg:#f4f5f7; --card:#ffffff; --text:#1d1d1f; --muted:#6e6e73; --warn:#d93a3a; --line:#e3e4e8; --chip:#ebecf0; --edge:#c9cad2; }
   * { box-sizing:border-box; }
@@ -188,7 +188,7 @@ const EN = {
   "특정한 사람을 가리키는 말은 적을 수 없어요. 물건이나 칸, 상황으로 적어 주세요":"You can't write about a specific person. Write about items, spaces or situations.",
   "공간":"Spaces", "공용품":"Shared supplies", "+ 칸 추가":"+ Add space", "+ 공용품 추가":"+ Add supply",
   "여러 명을 골라도 돼요":"You can pick more than one person", "쓰는 사람":"Who uses it", "이름 바꾸기":"Rename", "칸 삭제":"Delete space",
-  "사진 바꾸기":"Change photo", "사진 올리기":"Add photo", "칸 이름":"Space name", "종류":"Type", "종류를 골라 주세요":"Please choose a type", "종류 없음":"No type", "종류 고르기":"Choose a type", "종류 미정":"Type not set", "냉장고":"Fridge",
+  "사진 바꾸기":"Change photo", "사진 올리기":"Add photo", "사진 지우기":"Remove photo", "구매일 (선택)":"Purchase date (optional)", "예: 우리 집":"e.g. Our home", "칸 이름":"Space name", "종류":"Type", "종류를 골라 주세요":"Please choose a type", "종류 없음":"No type", "종류 고르기":"Choose a type", "종류 미정":"Type not set", "냉장고":"Fridge",
   "이름 적기 (예: 욕실)":"Type name (e.g. bathroom)", "예: 우상 칸, 찬장":"e.g. Alex's space, cupboard",
   "냉장":"Fridge", "냉동":"Freezer", "가격 미입력":"No price", "상태 바꾸기":"Change status", "충분":"Enough", "적음":"Low", "없음":"None",
   "품목 이름":"Item name", "예: 주방세제":"e.g. washing-up liquid", "주방세제":"Washing-up liquid", "스펀지":"Sponge", "쓰레기봉투":"Bin bags",
@@ -522,15 +522,16 @@ function itemRow(i){
         <button class="sm ghost" onclick="throwFood(${i.id})">버림</button>
       </div>`;
   }
-  return `<div class="card row"><div class="thumb">${i.hasPhoto ? "사진 미저장" : "사진 없음"}</div>
+  return `<div class="card row">${thumbHTML(i)}
     <div style="flex:1"><b>${esc(i.name)}</b>${i.expiry ? ` <span class="tag">음식</span>` : ""}<div class="muted">${esc(i.location)}${placeName(i) ? ` · ${esc(placeName(i))}` : ""}${i.price != null ? ` · £${i.price.toFixed(2)}` : ""}</div>${food}</div>
     <div style="display:flex;flex-direction:column;gap:6px"><button class="sm ghost" onclick="showEditItem(${i.id})">수정</button><button class="sm ghost" onclick="delItem(${i.id})">삭제</button></div></div>`;
 }
 // 검색어를 칠 때는 목록만 갱신해서 검색창과 키보드가 유지되도록 함
 function renderItemList(){ document.getElementById("itemList").innerHTML = itemListHTML(); }
 function showAddItem(){
+  photoPick = null;
   document.getElementById("formArea").innerHTML = `<div class="card">
-    <label>사진 (선택)</label><input type="file" accept="image/*" capture="environment" id="ph">
+    <label>사진 (선택)</label><input type="file" accept="image/*" capture="environment" id="ph" onchange="pickItemPhoto(this)">
     <label>이름</label><input id="iname" placeholder="예: 쌀, 충전기">
     <label>장소</label><select id="iloc" onchange="toggleOther('iloc','iother');refreshPlace('iloc','iother','ispaceWrap','i')">${locOptions()}</select>
     <input id="iother" placeholder="장소를 직접 적으세요 (예: 옷장 위 상자)" style="display:none">
@@ -538,9 +539,41 @@ function showAddItem(){
     <label>샀을 때 가격 (£, 선택)</label><input id="iprice" type="number" step="0.01" min="0">
     <label>유통기한 (음식이면 입력, 선택)</label><input id="iexp" type="date" min="1000-01-01" max="9999-12-31"><button onclick="addItem()">저장</button></div>`;
 }
+// ===== 물건 사진 (이 기기 안에만 저장) =====
+// 고른 사진은 바로 줄여 두고(긴 쪽 240px, JPEG), 저장 버튼을 누르면 그 결과를 씀.
+// 휴대폰 저장 공간(약 5MB)을 아끼려고 작게 줄임
+let photoPick = null; // Promise<dataURL | null>
+function shrinkPhoto(file, max){
+  return new Promise(resolve => {
+    const reader = new FileReader();
+    reader.onerror = () => resolve(null);
+    reader.onload = () => {
+      const img = new Image();
+      img.onerror = () => resolve(null);
+      img.onload = () => {
+        const scale = Math.min(1, max / Math.max(img.width, img.height));
+        const c = document.createElement("canvas");
+        c.width = Math.max(1, Math.round(img.width * scale)); c.height = Math.max(1, Math.round(img.height * scale));
+        c.getContext("2d").drawImage(img, 0, 0, c.width, c.height);
+        resolve(c.toDataURL("image/jpeg", 0.7));
+      };
+      img.src = reader.result;
+    };
+    reader.readAsDataURL(file);
+  });
+}
+function pickItemPhoto(el){ const f = el.files && el.files[0]; photoPick = f ? shrinkPhoto(f, 240) : null; }
+// 물건 사진 칸: 사진이 있으면 보여 주고, 없으면 회색 칸
+function thumbHTML(i){
+  return i.photo
+    ? `<img src="${i.photo}" alt="" style="width:64px;height:64px;object-fit:cover;border-radius:8px;flex-shrink:0">`
+    : `<div class="thumb" style="width:64px;height:64px">${en("사진 없음")}</div>`;
+}
 // 유통기한은 연도 4자리(예: 2026-12-01)만 허용. 비어 있으면 괜찮음
 function okExpiry(v){ return !v || /^\d{4}-\d{2}-\d{2}$/.test(v); }
-function addItem(){
+let savingItem = false;
+async function addItem(){
+  if (savingItem) return;
   const name = document.getElementById("iname").value.trim();
   if(!name){ alert("이름을 입력하세요"); return; }
   const expiry = document.getElementById("iexp").value || "";
@@ -548,15 +581,23 @@ function addItem(){
   const p = document.getElementById("iprice").value;
   const loc = getLoc("iloc","iother");
   const pl = readPlace(loc, "i");
-  S.items.push({id:uid(), name, location:loc, spaceId:pl.spaceId, spot:pl.spot, hasPhoto:document.getElementById("ph").files.length > 0, price:p ? Number(p) : null, expiry, owner:itemOwner(pl.spaceId), qty:1, vis:"나"});
+  savingItem = true;
+  const photo = photoPick ? await photoPick : null;
+  S.items.push({id:uid(), name, location:loc, spaceId:pl.spaceId, spot:pl.spot, photo, hasPhoto:!!photo, price:p ? Number(p) : null, expiry, owner:itemOwner(pl.spaceId), qty:1, vis:"나"});
+  photoPick = null; savingItem = false;
   save(); render();
 }
 function delItem(id){ S.items = S.items.filter(i => i.id !== id); save(); render(); }
 // 등록한 물건·음식 수정: 이름, 장소, 가격, 유통기한을 바꿀 수 있음 (사진은 저장하지 않으므로 제외)
 function showEditItem(id){
+  photoPick = null;
   const i = S.items.find(x => x.id === id); if (!i) return;
   const isOther = !LOCATIONS.includes(i.location);
   document.getElementById("formArea").innerHTML = `<div class="card">
+    <label>사진 (선택)</label>
+    <div class="row wrap" style="margin-bottom:6px">${thumbHTML(i)}
+      <label style="display:inline-flex;align-items:center;min-height:44px;padding:0 12px;border-radius:10px;background:var(--chip);cursor:pointer">${i.photo ? "사진 바꾸기" : "사진 올리기"}<input type="file" accept="image/*" capture="environment" onchange="pickItemPhoto(this)" style="display:none"></label>
+      ${i.photo ? `<button class="sm ghost" onclick="removeItemPhoto(${id})">사진 지우기</button>` : ""}</div>
     <label>이름</label><input id="ename" value="${esc(i.name)}">
     <label>장소</label><select id="eloc" onchange="toggleOther('eloc','eother');refreshPlace('eloc','eother','espaceWrap','e')">${locOptions(isOther ? "기타" : i.location)}</select>
     <input id="eother" value="${esc(isOther ? i.location : "")}" placeholder="장소를 직접 적으세요" style="display:${isOther ? 'block' : 'none'}">
@@ -566,7 +607,9 @@ function showEditItem(id){
     <div class="row"><button onclick="saveItem(${id})">저장</button><button class="ghost" onclick="render()">취소</button></div></div>`;
   document.getElementById("formArea").scrollIntoView({block: "center"});
 }
-function saveItem(id){
+// 사진만 지우기 (물건은 그대로 둠)
+function removeItemPhoto(id){ const i = S.items.find(x => x.id === id); if (!i) return; delete i.photo; i.hasPhoto = false; save(); render(); showEditItem(id); }
+async function saveItem(id){
   const i = S.items.find(x => x.id === id); if (!i) return;
   const name = document.getElementById("ename").value.trim();
   if (!name) { window.alert("이름을 입력하세요"); return; }
@@ -575,7 +618,10 @@ function saveItem(id){
   const p = document.getElementById("eprice").value;
   const loc = getLoc("eloc", "eother");
   const pl = readPlace(loc, "e");
+  const newPhoto = photoPick ? await photoPick : null;
   Object.assign(i, {name, location: loc, spaceId: pl.spaceId, spot: pl.spot, price: p ? Number(p) : null, expiry, owner: itemOwner(pl.spaceId)});
+  if (newPhoto) { i.photo = newPhoto; i.hasPhoto = true; }
+  photoPick = null;
   save(); render();
 }
 
