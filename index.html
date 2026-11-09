@@ -7,7 +7,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="theme-color" content="#f4f5f7">
-<title>우리 집 프로토타입 v25</title>
+<title>우리 집 프로토타입 v26</title>
 <style>
   :root { --main:#2e7d6b; --bg:#f4f5f7; --card:#ffffff; --text:#1d1d1f; --muted:#6e6e73; --warn:#d93a3a; --line:#e3e4e8; --chip:#ebecf0; --edge:#c9cad2; }
   * { box-sizing:border-box; }
@@ -219,7 +219,8 @@ const EN = {
   "저장 중…":"Saving…", "저장됨":"Saved", "연결 안 됨 · 다시 시도 중":"Offline · retrying", "저장 안 됨":"Not saved",
   "사진이 너무 많아요. 사진을 지워 주세요":"too many photos, please delete some",
   "룸메이트 초대":"Invite roommates", "코드":"Code", "공유하기":"Share", "링크 복사":"Copy link", "룸메이트 초대하기":"Invite roommates",
-  "룸메이트와 함께 쓰면 청소·주방이 같이 보여요":"Share chores and the kitchen with your roommates"
+  "룸메이트와 함께 쓰면 청소·주방이 같이 보여요":"Share chores and the kitchen with your roommates",
+  "바꾸고 참여하기":"Replace and join"
 };
 // 알림·상태처럼 글자를 조각내 만든 문장은 조각마다 이 도우미로 영어를 가져옴 (한국어 모드에서는 그대로)
 function en(k){ return lang === "en" && Object.prototype.hasOwnProperty.call(EN, k) ? EN[k] : k; }
@@ -343,10 +344,34 @@ async function showJoinForm(code){
   try { row = (await rpc("get_house", {p_code: code}))[0] || null; }
   catch(e) { window.alert("인터넷 연결을 확인해 주세요"); return; }
   if (!row) { window.alert("초대 코드를 다시 확인해 주세요"); return; }
+  const risk = joinRiskHTML(code);
   document.getElementById("formArea").innerHTML = `<div class="card">
     <div>집 확인: <b>${esc(row.name)}</b></div>
-    <label>내 이름</label><input id="jname" placeholder="예: 우상">
-    <button onclick="joinHouse('${code}')">참여하기</button></div>`;
+    <label>내 이름</label><input id="jname" placeholder="예: 우상" value="${esc(S.me || "")}">
+    ${risk}
+    ${risk ? `<div class="row wrap"><button style="background:var(--warn)" onclick="joinHouse('${code}')">바꾸고 참여하기</button><button class="ghost" onclick="render()">취소</button></div>`
+           : `<button onclick="joinHouse('${code}')">참여하기</button>`}</div>`;
+}
+// 참여하면 이 기기의 집 데이터가 초대받은 집 데이터로 바뀜. 잃게 되는 것이 있으면 미리 알려 줌
+function localLoss(){
+  return {
+    items: (S.items || []).length,
+    other: (S.board || []).length + (S.bookings || []).length + (S.log || []).length
+      + Math.max(0, (S.chores || []).length - DEF.chores.length) + Math.max(0, (S.supplies || []).length - DEF.supplies.length)
+  };
+}
+function joinRiskHTML(code){
+  if (S.serverCode === code) return "";
+  const {items, other} = localLoss();
+  const otherHouse = S.serverCode && S.serverCode !== code;
+  if (!items && !other && !otherHouse) return "";
+  const ko = lang !== "en";
+  const parts = [];
+  if (items) parts.push(ko ? `물건·음식 ${items}개` : `${items} item(s)`);
+  if (other) parts.push(ko ? `다른 기록 ${other}개` : `${other} other record(s)`);
+  const lostLine = parts.length ? (ko ? `이 기기에 있던 ${parts.join(", ")}는 이 집 데이터로 바뀌어 사라져요.` : `${parts.join(" and ")} on this device will be replaced by this house's data.`) : "";
+  const houseLine = otherHouse ? (ko ? `지금 들어가 있는 집(${esc(S.houseName || "")})에서 나와요. 그 집 데이터는 서버에 남아 있어요.` : `You'll leave your current house (${esc(S.houseName || "")}). Its data stays on the server.`) : "";
+  return `<div class="card warn" id="joinRisk" style="border:1px solid var(--warn);margin:4px 0 10px">${[lostLine, houseLine].filter(Boolean).join("<br>")}</div>`;
 }
 // 페이지를 열 때: 초대 링크가 있으면 참여 화면, 그 뒤로 10초마다 다른 기기의 변경을 확인
 function startUp(){
