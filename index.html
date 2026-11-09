@@ -32,8 +32,14 @@
   .thumb { width:48px; height:48px; border-radius:8px; background:var(--line); display:flex; align-items:center; justify-content:center; font-size:11px; color:var(--muted); flex-shrink:0; }
   /* 탭 바 좌우에 여백을 줘서 아이폰 모서리 곡선에 글자가 걸리지 않게 함 */
   nav { position:fixed; bottom:0; left:50%; transform:translateX(-50%); width:100%; max-width:430px; background:var(--card); display:flex; border-top:1px solid var(--line); padding:0 16px env(safe-area-inset-bottom); box-sizing:border-box; }
-  nav button { flex:1; min-width:0; border-radius:0; background:transparent; color:var(--muted); padding:10px 0; font-size:12px; min-height:56px; }
-  nav button.on { color:var(--text); font-weight:700; }
+  nav button { flex:1; min-width:0; border-radius:0; background:transparent; color:var(--muted); padding:8px 0 10px; font-size:12px; min-height:56px; position:relative; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px; transition:color .15s; }
+  nav .ico { display:flex; margin:0; font-size:0; transition:transform .12s; }
+  nav .ico svg { width:24px; height:24px; fill:none; stroke:currentColor; stroke-width:1.8; stroke-linecap:round; stroke-linejoin:round; }
+  nav .ico svg .f { fill:transparent; transition:fill .15s; }
+  nav button:active .ico { transform:scale(.86); }
+  nav button.on { color:var(--main); font-weight:700; }
+  nav button.on .ico svg .f { fill:var(--main); fill-opacity:.18; }
+  nav button.on::before { content:""; position:absolute; top:-1px; left:30%; right:30%; height:3px; border-radius:0 0 3px 3px; background:var(--main); }
   .tl { margin:6px 0 12px; }
   .tl-bar { position:relative; height:22px; background:var(--chip); border-radius:8px; overflow:hidden; }
   .tl-book, .tl-use { position:absolute; top:0; bottom:0; }
@@ -63,7 +69,13 @@
 const KEY = "proto_home_v2";
 const LOCATIONS = ["방", "주방", "냉장고", "냉동고", "찬장", "서랍", "기타"];
 // 아래 탭은 4개. 설정은 상단 오른쪽 톱니 아이콘으로 들어감. 집 화면의 내용은 청소·주방 탭으로 옮김
-const TABS = [["items","물건·음식","📦"], ["chores","청소·주방","🧹"], ["fridge","냉장고·공용품","🧊"], ["alerts","알림","🔔"]];
+// 탭 아이콘은 선 그림. 선택된 탭은 .f 부분이 채워져 아이콘이 바뀜
+const TABS = [
+  ["items","물건·음식",`<svg viewBox="0 0 24 24"><path class="f" d="M3 7l9-4 9 4v10l-9 4-9-4z"/><path d="M3 7l9 4 9-4M12 11v10"/></svg>`],
+  ["chores","청소·주방",`<svg viewBox="0 0 24 24"><circle class="f" cx="12" cy="12" r="9"/><path d="M8 12l3 3 5-6"/></svg>`],
+  ["fridge","냉장고·공용품",`<svg viewBox="0 0 24 24"><rect class="f" x="6" y="2" width="12" height="20" rx="2"/><path d="M6 10h12M9 6v1M9 14v3"/></svg>`],
+  ["alerts","알림",`<svg viewBox="0 0 24 24"><path class="f" d="M6 16V11a6 6 0 0 1 12 0v5l2 2H4z"/><path d="M10 20a2 2 0 0 0 4 0"/></svg>`]
+];
 const DEF = {
   started:false, mode:null, me:"", houseName:"", inviteCode:"", members:[],
   items:[], foods:[],
