@@ -814,9 +814,9 @@ function choresView(){
   const n = people().length;
   const hint = n === 1 ? `<div class="muted" style="margin-bottom:8px">서버 연결 전 시연용이라 지금은 이 기기의 사용자만 담당으로 고를 수 있어요.</div>` : "";
   const preview = `<div class="sec">다음 교대 미리보기</div>` + S.chores.map(c => `<div class="card" style="font-size:14px">${esc(en(c.task))}: <span class="muted">${en("지금")}</span> <b>${esc(whoOf(c) || "담당 없음")}</b> → ${nextChangeLabel(c)}</div>`).join("");
-  return `${todayHTML()}${weekCalendar()}<div class="sec">청소 당번 (이번 주)</div>${hint}${list}${preview}
-    <button class="big" onclick="showAddChore()">+ 청소 항목 추가</button><div id="formArea"></div>
-    ${kitchenHTML()}`;
+  // 주방 사용은 이번 주 달력과 청소 당번 사이에 둠
+  return `${todayHTML()}${weekCalendar()}${kitchenHTML()}<div class="sec">청소 당번 (이번 주)</div>${hint}${list}${preview}
+    <button class="big" onclick="showAddChore()">+ 청소 항목 추가</button><div id="formArea"></div>`;
 }
 
 // ===== 4. 냉장고·공용품 =====
