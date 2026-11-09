@@ -7,7 +7,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="theme-color" content="#f4f5f7">
-<title>우리 집 프로토타입 v19</title>
+<title>우리 집 프로토타입 v20</title>
 <style>
   :root { --main:#2e7d6b; --bg:#f4f5f7; --card:#ffffff; --text:#1d1d1f; --muted:#6e6e73; --warn:#d93a3a; --line:#e3e4e8; --chip:#ebecf0; --edge:#c9cad2; }
   * { box-sizing:border-box; }
@@ -189,7 +189,7 @@ const EN = {
   "특정한 사람을 가리키는 말은 적을 수 없어요. 물건이나 칸, 상황으로 적어 주세요":"You can't write about a specific person. Write about items, spaces or situations.",
   "공간":"Spaces", "공용품":"Shared supplies", "+ 칸 추가":"+ Add space", "+ 공용품 추가":"+ Add supply",
   "여러 명을 골라도 돼요":"You can pick more than one person", "쓰는 사람":"Who uses it", "이름 바꾸기":"Rename", "칸 삭제":"Delete space",
-  "사진 바꾸기":"Change photo", "사진 올리기":"Add photo", "사진 지우기":"Remove photo", "사진 찍기":"Take photo", "사진 보관함":"Photo library", "탭하면 닫혀요":"Tap to close", "구매일 (선택)":"Purchase date (optional)", "예: 우리 집":"e.g. Our home", "칸 이름":"Space name", "종류":"Type", "종류를 골라 주세요":"Please choose a type", "종류 없음":"No type", "종류 고르기":"Choose a type", "종류 미정":"Type not set", "냉장고":"Fridge",
+  "사진 바꾸기":"Change photo", "사진 올리기":"Add photo", "사진 지우기":"Remove photo", "사진을 골랐어요":"Photo selected", "사진 찍기":"Take photo", "사진 보관함":"Photo library", "탭하면 닫혀요":"Tap to close", "구매일 (선택)":"Purchase date (optional)", "예: 우리 집":"e.g. Our home", "칸 이름":"Space name", "종류":"Type", "종류를 골라 주세요":"Please choose a type", "종류 없음":"No type", "종류 고르기":"Choose a type", "종류 미정":"Type not set", "냉장고":"Fridge",
   "이름 적기 (예: 욕실)":"Type name (e.g. bathroom)", "예: 우상 칸, 찬장":"e.g. Alex's space, cupboard",
   "냉장":"Fridge", "냉동":"Freezer", "가격 미입력":"No price", "상태 바꾸기":"Change status", "충분":"Enough", "적음":"Low", "없음":"None",
   "품목 이름":"Item name", "예: 주방세제":"e.g. washing-up liquid", "주방세제":"Washing-up liquid", "스펀지":"Sponge", "쓰레기봉투":"Bin bags",
@@ -287,6 +287,8 @@ function matches(name, q){
   if (!onlyJamo) return name.toLowerCase().includes(q.toLowerCase());
   return simpleCho(name).includes(simpleCho(qq));
 }
+// 가격 칸은 글자 입력이라서 읽을 때 숫자로 바꿈 (쉼표도 점으로 인정). 숫자가 아니면 없음으로 저장
+function priceOf(v){ const s = String(v || "").trim().replace(",", "."); if (!s) return null; const n = Number(s); return isFinite(n) ? n : null; }
 function rank(l){ const i = LOCATIONS.indexOf(l); return i < 0 ? 99 : i; }
 function toggleOther(sel, inp){ document.getElementById(inp).style.display = document.getElementById(sel).value === "기타" ? "block" : "none"; }
 function getLoc(sel, inp){ const v = document.getElementById(sel).value; return v === "기타" ? (document.getElementById(inp).value.trim() || "기타") : v; }
@@ -537,7 +539,7 @@ function showAddItem(){
     <label>장소</label><select id="iloc" onchange="toggleOther('iloc','iother');refreshPlace('iloc','iother','ispaceWrap','i')">${locOptions()}</select>
     <input id="iother" placeholder="장소를 직접 적으세요 (예: 옷장 위 상자)" style="display:none">
     <div id="ispaceWrap">${placePick("방", {}, "i")}</div>
-    <label>샀을 때 가격 (£, 선택)</label><input id="iprice" type="number" step="0.01" min="0">
+    <label>샀을 때 가격 (£, 선택)</label><input id="iprice" type="text" inputmode="decimal" autocomplete="off">
     <label>유통기한 (음식이면 입력, 선택)</label><input id="iexp" type="date" min="1000-01-01" max="9999-12-31"><button onclick="addItem()">저장</button></div>`;
 }
 // ===== 물건 사진 (이 기기 안에만 저장) =====
@@ -563,7 +565,12 @@ function shrinkPhoto(file, max){
     reader.readAsDataURL(file);
   });
 }
-function pickItemPhoto(el){ const f = el.files && el.files[0]; photoPick = f ? shrinkPhoto(f, 480) : null; }
+function pickItemPhoto(el){
+  const f = el.files && el.files[0];
+  photoPick = f ? shrinkPhoto(f, 480) : null;
+  const mark = el.closest("label") && el.closest("label").nextElementSibling;
+  if (mark && mark.classList.contains("photo-mark")) mark.textContent = f ? en("사진을 골랐어요") : "";
+}
 // 물건 사진 칸: 사진이 있으면 보여 주고, 없으면 회색 칸
 function thumbHTML(i){
   return i.photo
@@ -572,8 +579,7 @@ function thumbHTML(i){
 }
 // 사진 고르기 버튼: 사진 보관함(사진첩)만. 카메라는 쓰지 않음
 function photoBtnsHTML(handler){
-  const btn = (t, cap) => `<label style="display:inline-flex;align-items:center;min-height:44px;padding:0 12px;margin:0 8px 6px 0;border-radius:10px;background:var(--chip);cursor:pointer">${t}<input type="file" accept="image/*"${cap ? ` capture="${cap}"` : ""} onchange="${handler}" style="display:none"></label>`;
-  return btn("사진 보관함", "");
+  return `<label style="position:relative;overflow:hidden;display:inline-flex;align-items:center;min-height:44px;padding:0 12px;margin:0 8px 6px 0;border-radius:10px;background:var(--chip);cursor:pointer">사진 보관함<input type="file" accept="image/*" onchange="${handler}" style="position:absolute;left:0;top:0;width:100%;height:100%;opacity:0;cursor:pointer;font-size:16px"></label><span class="photo-mark muted" style="font-size:13px"></span>`;
 }
 // 물건 사진 크게 보기: 화면 전체에 띄우고, 누르면 닫힘. 목록을 다시 그려도 사라지지 않도록 화면 바깥(body)에 붙임
 function showPhoto(src){
@@ -600,7 +606,7 @@ async function addItem(){
   const pl = readPlace(loc, "i");
   savingItem = true;
   const photo = photoPick ? await photoPick : null;
-  S.items.push({id:uid(), name, location:loc, spaceId:pl.spaceId, spot:pl.spot, photo, hasPhoto:!!photo, price:p ? Number(p) : null, expiry, owner:itemOwner(pl.spaceId), qty:1, vis:"나"});
+  S.items.push({id:uid(), name, location:loc, spaceId:pl.spaceId, spot:pl.spot, photo, hasPhoto:!!photo, price:priceOf(p), expiry, owner:itemOwner(pl.spaceId), qty:1, vis:"나"});
   photoPick = null; savingItem = false;
   save(); render();
 }
@@ -619,7 +625,7 @@ function showEditItem(id){
     <label>장소</label><select id="eloc" onchange="toggleOther('eloc','eother');refreshPlace('eloc','eother','espaceWrap','e')">${locOptions(isOther ? "기타" : i.location)}</select>
     <input id="eother" value="${esc(isOther ? i.location : "")}" placeholder="장소를 직접 적으세요" style="display:${isOther ? 'block' : 'none'}">
     <div id="espaceWrap">${placePick(i.location, {spaceId: i.spaceId, spot: i.spot}, "e")}</div>
-    <label>샀을 때 가격 (£, 선택)</label><input id="eprice" type="number" step="0.01" min="0" value="${i.price != null ? i.price : ""}">
+    <label>샀을 때 가격 (£, 선택)</label><input id="eprice" type="text" inputmode="decimal" autocomplete="off" value="${i.price != null ? i.price : ""}">
     <label>유통기한 (음식이면 입력, 선택)</label><input id="eexp" type="date" min="1000-01-01" max="9999-12-31" value="${i.expiry || ""}">
     <div class="row"><button onclick="saveItem(${id})">저장</button><button class="ghost" onclick="render()">취소</button></div></div>`;
   document.getElementById("formArea").scrollIntoView({block: "center"});
@@ -636,7 +642,7 @@ async function saveItem(id){
   const loc = getLoc("eloc", "eother");
   const pl = readPlace(loc, "e");
   const newPhoto = photoPick ? await photoPick : null;
-  Object.assign(i, {name, location: loc, spaceId: pl.spaceId, spot: pl.spot, price: p ? Number(p) : null, expiry, owner: itemOwner(pl.spaceId)});
+  Object.assign(i, {name, location: loc, spaceId: pl.spaceId, spot: pl.spot, price: priceOf(p), expiry, owner: itemOwner(pl.spaceId)});
   if (newPhoto) { i.photo = newPhoto; i.hasPhoto = true; }
   photoPick = null;
   save(); render();
@@ -1008,7 +1014,7 @@ function cycleSupply(id){ const s = S.supplies.find(x => x.id === id); const ord
 function showAddSupply(){
   document.getElementById("formArea").innerHTML = `<div class="card">
     <label>품목 이름</label><input id="sname" placeholder="예: 주방세제">
-    <label>샀을 때 가격 (£, 선택)</label><input id="sprice" type="number" step="0.01" min="0">
+    <label>샀을 때 가격 (£, 선택)</label><input id="sprice" type="text" inputmode="decimal" autocomplete="off">
     <label>구매일 (선택)</label><input id="sdate" type="date">
     <button onclick="addSupply()">저장</button></div>`;
 }
@@ -1017,7 +1023,7 @@ function showEditSupply(id){
   const s = S.supplies.find(x => x.id === id); if (!s) return;
   document.getElementById("formArea").innerHTML = `<div class="card">
     <label>품목 이름</label><input id="sname" value="${esc(s.name)}">
-    <label>샀을 때 가격 (£, 선택)</label><input id="sprice" type="number" step="0.01" min="0" value="${s.price != null ? s.price : ""}">
+    <label>샀을 때 가격 (£, 선택)</label><input id="sprice" type="text" inputmode="decimal" autocomplete="off" value="${s.price != null ? s.price : ""}">
     <label>구매일 (선택)</label><input id="sdate" type="date" min="1000-01-01" max="9999-12-31" value="${s.date || ""}">
     <div class="row" style="margin-top:8px"><button onclick="saveSupply(${id})">저장</button><button class="ghost" onclick="render()">취소</button></div></div>`;
   const box = document.getElementById("sname"); box.focus(); box.scrollIntoView({block: "center"});
@@ -1029,14 +1035,14 @@ function saveSupply(id){
   const d = document.getElementById("sdate").value;
   if (!okExpiry(d)) { window.alert("날짜는 연도 4자리로 적어 주세요"); return; }
   const p = document.getElementById("sprice").value;
-  s.name = name; s.price = p ? Number(p) : null; s.date = d || "";
+  s.name = name; s.price = priceOf(p); s.date = d || "";
   save(); render();
 }
 function addSupply(){
   const name = document.getElementById("sname").value.trim();
   if(!name){ alert("품목 이름을 입력하세요"); return; }
   const p = document.getElementById("sprice").value;
-  S.supplies.push({id:uid(), name, level:"충분", price:p ? Number(p) : null, date:document.getElementById("sdate").value || ""});
+  S.supplies.push({id:uid(), name, level:"충분", price:priceOf(p), date:document.getElementById("sdate").value || ""});
   save(); render();
 }
 
