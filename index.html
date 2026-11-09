@@ -256,7 +256,8 @@ function matches(name, q){
 function rank(l){ const i = LOCATIONS.indexOf(l); return i < 0 ? 99 : i; }
 function toggleOther(sel, inp){ document.getElementById(inp).style.display = document.getElementById(sel).value === "기타" ? "block" : "none"; }
 function getLoc(sel, inp){ const v = document.getElementById(sel).value; return v === "기타" ? (document.getElementById(inp).value.trim() || "기타") : v; }
-const locOptions = (cur) => LOCATIONS.map(l => `<option${l === cur ? " selected" : ""}>${l}</option>`).join("");
+// value를 따로 적어서 영어 모드에서 글자가 바뀌어도 저장되는 값(한국어 장소 이름)은 그대로 유지됨
+const locOptions = (cur) => LOCATIONS.map(l => `<option value="${l}"${l === cur ? " selected" : ""}>${l}</option>`).join("");
 // 물건 장소와 칸을 잇는 방법
 // 냉장고·냉동고·서랍: 냉장고 탭에서 만든 칸 중에서 고름 (같은 종류만 보임)
 // 그 밖의 장소(방, 주방, 찬장, 기타 등): 전에 적어 둔 칸 이름 중에서 고르거나 '+ 새 칸 적기'로 새로 적음. 적은 이름은 그 장소에 남음
@@ -275,7 +276,7 @@ function placePick(loc, cur, p){
   const curSpot = cur.spot || "";
   return `<label>칸 (선택)</label>
     <select id="${p}spot" onchange="document.getElementById('${p}spotNew').style.display = this.value === '__new' ? '' : 'none'">
-      <option value="">칸 정하지 않음</option>${spotList(loc).map(n => `<option${n === curSpot ? " selected" : ""}>${esc(n)}</option>`).join("")}<option value="__new">+ 새 칸 적기</option>
+      <option value="">칸 정하지 않음</option>${spotList(loc).map(n => `<option value="${esc(n)}"${n === curSpot ? " selected" : ""}>${esc(n)}</option>`).join("")}<option value="__new">+ 새 칸 적기</option>
     </select>
     <input id="${p}spotNew" placeholder="칸 이름 적기 (예: 책상 서랍, 옷장)" style="display:none;margin-top:6px">`;
 }
@@ -942,12 +943,14 @@ function boardHTML(){
       <div class="muted" style="font-size:12px">${fmtDay(b.at)}</div></div>
       <button class="sm ghost" onclick="delBoard(${b.id})">지우기</button></div>`).join("")
     : `<div class="card muted">아직 남긴 메모가 없어요.</div>`;
-  const places = `<option value="">장소 없음</option>` + LOCATIONS.map(l => `<option>${l}</option>`).join("");
+  // 알림판 장소는 '방'을 뺀 목록. '기타'를 고르면 직접 적을 수 있음
+  const places = `<option value="">장소 없음</option>` + LOCATIONS.filter(l => l !== "방").map(l => `<option value="${l}">${l}</option>`).join("");
   return `<div class="sec">우리 집 알림판</div>
     <div class="card">
       <div class="muted" style="font-size:12px;margin-bottom:6px">${BOARD_RULE}</div>
       <input id="bText" maxlength="100" placeholder="예: 싱크대 기름 많음, 쌀이 거의 없음">
-      <div class="row wrap" style="margin-top:8px"><select id="bPlace">${places}</select><button class="sm" onclick="postBoard()">남기기</button></div>
+      <div class="row wrap" style="margin-top:8px"><select id="bPlace" onchange="toggleOther('bPlace','bPlaceOther')">${places}</select><button class="sm" onclick="postBoard()">남기기</button></div>
+      <input id="bPlaceOther" maxlength="30" placeholder="장소를 직접 적으세요" style="display:none">
     </div>
     ${items}`;
 }
@@ -957,7 +960,10 @@ function postBoard(){
   const names = [...people(), S.me].filter(Boolean);
   if (names.some(n => text.includes(n))) { window.alert("특정한 사람을 가리키는 말은 적을 수 없어요. 물건이나 칸, 상황으로 적어 주세요"); return; }
   S.board = S.board || [];
-  S.board.push({id: uid(), text, place: document.getElementById("bPlace").value, at: Date.now()});
+  // 장소가 '기타'면 직접 적은 이름을 씀 (비어 있으면 '기타')
+  const sel = document.getElementById("bPlace").value;
+  const place = sel === "기타" ? ((document.getElementById("bPlaceOther").value || "").trim() || "기타") : sel;
+  S.board.push({id: uid(), text, place, at: Date.now()});
   save(); render();
 }
 function delBoard(id){ S.board = (S.board || []).filter(b => b.id !== id); save(); render(); }
