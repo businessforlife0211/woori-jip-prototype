@@ -11,7 +11,7 @@
 <link rel="apple-touch-icon" href="./apple-touch-icon.png">
 <meta name="apple-mobile-web-app-title" content="우리 집">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
-<title>우리 집 프로토타입 v41</title>
+<title>우리 집 프로토타입 v42</title>
 <script>try{var _t=localStorage.getItem("proto_theme_v1")||"dark",_h=new Date().getHours();document.documentElement.setAttribute("data-theme",(_t==="light"||(_t==="auto"&&_h>=7&&_h<19))?"light":"dark")}catch(e){document.documentElement.setAttribute("data-theme","dark")}</script>
 <style>
   /* ===== 디자인 기준 (v39): 밤(다크)이 기본, 낮(라이트)은 따뜻한 크림색. 색은 전부 아래 변수로만 씀 ===== */
@@ -200,7 +200,9 @@
   @media (prefers-reduced-motion: reduce) { nav button.pop .ico { animation:none; } }
   nav button.on { color:var(--main); font-weight:700; }
   nav button.on .ico svg .f { fill:var(--sun); }
-  nav button.on .ico svg path:not(.f) { stroke:var(--nav-bg); }
+  nav button.on .ico svg path:not(.f):not(.k) { stroke:var(--nav-bg); }
+  /* 종 아래 추(작은 호)는 채워진 종 바깥에 있으니 배경색으로 지우지 않고 그대로 보여 줌 */
+  nav button.on .ico svg path.k { stroke:currentColor; }
   .badge { position:absolute; top:-5px; left:15px; min-width:17px; height:17px; padding:0 4px; border-radius:9px; background:var(--warn); color:#fff; font-size:10px; font-weight:800; display:flex; align-items:center; justify-content:center; }
   /* 오늘 주방 시간표 */
   .tl { background:var(--card); border-radius:18px; padding:14px; margin:0 0 10px; box-shadow:var(--shadow-card); }
@@ -250,7 +252,7 @@ const TABS = [
   ["items","물건·음식",`<svg viewBox="0 0 24 24"><path class="f" d="M3 7l9-4 9 4v10l-9 4-9-4z"/><path d="M3 7l9 4 9-4M12 11v10"/></svg>`],
   ["chores","청소·주방",`<svg viewBox="0 0 24 24"><circle class="f" cx="12" cy="12" r="9"/><path d="M8 12l3 3 5-6"/></svg>`],
   ["fridge","냉장고·공용품",`<svg viewBox="0 0 24 24"><rect class="f" x="6" y="2" width="12" height="20" rx="2"/><path d="M6 10h12M9 6v1M9 14v3"/></svg>`],
-  ["alerts","알림",`<svg viewBox="0 0 24 24"><path class="f" d="M6 16V11a6 6 0 0 1 12 0v5l2 2H4z"/><path d="M10 20a2 2 0 0 0 4 0"/></svg>`]
+  ["alerts","알림",`<svg viewBox="0 0 24 24"><path class="f" d="M6 16V11a6 6 0 0 1 12 0v5l2 2H4z"/><path class="k" d="M10 20a2 2 0 0 0 4 0"/></svg>`]
 ];
 const DEF = {
   started:false, mode:null, me:"", houseName:"", inviteCode:"", members:[],
