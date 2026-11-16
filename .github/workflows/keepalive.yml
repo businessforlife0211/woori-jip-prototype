@@ -1,0 +1,20 @@
+# Supabase 무료 프로젝트는 7일 동안 활동이 없으면 일시 정지됨. 이틀에 한 번 읽기 요청 하나를 보내 활동을 만듦.
+# 아무 데이터도 바꾸지 않음(houses 표에서 1줄 읽기 시도). 공개 키(publishable)만 사용하며 비밀 키는 쓰지 않음.
+name: supabase-keepalive
+on:
+  schedule:
+    - cron: "17 6 */2 * *"
+  workflow_dispatch:
+permissions: {}
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Read one row (no changes)
+        run: |
+          code=$(curl -s -o /dev/null -w "%{http_code}" --max-time 30 \
+            "https://redmrqgdndzbkvtbrngh.supabase.co/rest/v1/houses?select=code&limit=1" \
+            -H "apikey: sb_publishable_8hsqP4dUlsQCGuOjJIo7CA_QlrVTWqY" \
+            -H "Authorization: Bearer sb_publishable_8hsqP4dUlsQCGuOjJIo7CA_QlrVTWqY")
+          echo "status $code"
+          test "$code" = "200"
