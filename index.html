@@ -6,21 +6,21 @@
 <!-- 홈 화면 앱으로 열 때 상태 표시줄 아래에서 내용이 시작되도록 함 -->
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black">
-<meta name="theme-color" content="#141B34">
+<meta name="theme-color" content="#1A1530">
 <link rel="manifest" href="./manifest.json">
 <link rel="apple-touch-icon" href="./apple-touch-icon.png">
 <meta name="apple-mobile-web-app-title" content="우리 집">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
-<title>우리 집 프로토타입 v42</title>
+<title>우리 집 프로토타입 v43</title>
 <script>try{var _t=localStorage.getItem("proto_theme_v1")||"dark",_h=new Date().getHours();document.documentElement.setAttribute("data-theme",(_t==="light"||(_t==="auto"&&_h>=7&&_h<19))?"light":"dark")}catch(e){document.documentElement.setAttribute("data-theme","dark")}</script>
 <style>
   /* ===== 디자인 기준 (v39): 밤(다크)이 기본, 낮(라이트)은 따뜻한 크림색. 색은 전부 아래 변수로만 씀 ===== */
   /* ===== 디자인 기준 (v31): 한눈에 보이게. 큰 굵은 제목, 넓은 여백, 테두리 없는 흰 카드, 중요한 것 하나만 진하게 ===== */
-  :root { --bg:#141B34; --card:#1E2747; --text:#F6EFD9; --ink:#F6EFD9; --muted:#A3ABCB; --faint:#8790B5; --line:#2B3560; --chip:#2A3560; --edge:#3A4575; --check-border:#46528A;
-    --main:#FFC83D; --sun:#FFC83D; --on-main:#141B34; --btn-bg:#FFC83D; --btn-fg:#141B34; --warn:#FF6B6B; --amber:#FF9F43; --mint:#5FE0A5;
+  :root { --bg:#1A1530; --card:#262045; --text:#F6EFD9; --ink:#F6EFD9; --muted:#B2A9D4; --faint:#9088B8; --line:#352D5C; --chip:#2F2757; --edge:#443A72; --check-border:#52467F;
+    --main:#FFC857; --sun:#FFC857; --on-main:#1A1530; --btn-bg:#FFC857; --btn-fg:#1A1530; --warn:#FF6B6B; --amber:#FF9F43; --mint:#5FE0A5;
     --ok-bg:#1B3A36; --ok-fg:#7BE3B0; --danger-bg:#4A2430; --amber-bg:#46321A; --amber-fg:#FFC27A; --accent-bg:#3B3520; --accent-fg:#FFD978;
-    --input-bg:#141B34; --hero-bg:#2B3668; --hero-fg:#F6EFD9; --hero-sub:#A3ABCB; --nav-bg:#0E1428; --book-text:#8FA8FF;
-    --cb-off:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 26 26'%3E%3Crect x='2' y='2' width='22' height='22' rx='6' fill='none' stroke='%2346528A' stroke-width='2'/%3E%3Cpath d='M13 2v22M2 13h22' stroke='%2346528A' stroke-width='1.6'/%3E%3C/svg%3E"); --cb-on:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 26 26'%3E%3Crect x='2' y='2' width='22' height='22' rx='6' fill='%23FFC83D' stroke='%23FFC83D' stroke-width='2'/%3E%3Cpath d='M13 2v22M2 13h22' stroke='%23141B34' stroke-width='1.8'/%3E%3C/svg%3E"); --shadow-card:none; --shadow-fab:0 8px 20px rgba(0,0,0,.45); --overlay:rgba(5,8,20,.6); --focus:rgba(255,200,61,.22); color-scheme:dark; }
+    --input-bg:#1A1530; --hero-bg:#3A2F6B; --hero-fg:#F6EFD9; --hero-sub:#B2A9D4; --nav-bg:#120E24; --book-text:#8FA8FF;
+    --cb-off:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 26 26'%3E%3Crect x='2' y='2' width='22' height='22' rx='6' fill='none' stroke='%2352467F' stroke-width='2'/%3E%3Cpath d='M13 2v22M2 13h22' stroke='%2352467F' stroke-width='1.6'/%3E%3C/svg%3E"); --cb-on:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 26 26'%3E%3Crect x='2' y='2' width='22' height='22' rx='6' fill='%23FFC857' stroke='%23FFC857' stroke-width='2'/%3E%3Cpath d='M13 2v22M2 13h22' stroke='%231A1530' stroke-width='1.8'/%3E%3C/svg%3E"); --shadow-card:none; --shadow-fab:0 8px 20px rgba(0,0,0,.45); --overlay:rgba(10,6,24,.6); --focus:rgba(255,200,87,.22); color-scheme:dark; }
   :root[data-theme="light"] { --bg:#FFF6E3; --card:#FFFFFF; --text:#1B2440; --ink:#1B2440; --muted:#6F6A58; --faint:#8A7F63; --line:#F1E6CB; --chip:#FBEFD0; --edge:#E6D7AE; --check-border:#D9C894;
     --main:#B86A00; --sun:#FFAE1A; --on-main:#1B2440; --btn-bg:#1B2440; --btn-fg:#FFF6E3; --warn:#D9363E; --amber:#E58A00; --mint:#2BB673;
     --ok-bg:#E3F5EA; --ok-fg:#13734A; --danger-bg:#FDE8E8; --amber-bg:#FFF0D1; --amber-fg:#8F5A00; --accent-bg:#FFEBB8; --accent-fg:#7A4A00;
@@ -85,7 +85,7 @@
   :root[data-theme="light"] .eart .lt { display:block; }
   :root[data-theme="light"] .eart .nt { display:none; }
   /* 불이 탁 켜짐(밤) / 해가 떠오름(낮): 방금 바뀐 것에만 한 번 */
-  @keyframes litpop { 0% { transform:scale(.7); filter:brightness(.6); } 55% { transform:scale(1.28); filter:brightness(1.35) drop-shadow(0 0 7px rgba(255,200,61,.75)); } 100% { transform:scale(1); filter:none; } }
+  @keyframes litpop { 0% { transform:scale(.7); filter:brightness(.6); } 55% { transform:scale(1.28); filter:brightness(1.35) drop-shadow(0 0 7px rgba(255,200,87,.75)); } 100% { transform:scale(1); filter:none; } }
   input[type=checkbox].pop:checked, .win.pop { animation:litpop .5s ease-out; }
   @media (prefers-reduced-motion: reduce) { input[type=checkbox].pop:checked, .win.pop { animation:none; } }
   /* 주방 카드: 집 사람마다 창 하나, 쓰는 중이면 불이 켜짐 */
@@ -93,7 +93,7 @@
   .win { position:relative; z-index:0; overflow:hidden; width:30px; height:30px; border-radius:9px; display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:800; background:rgba(255,255,255,.09); color:var(--hero-sub); transition:background .3s, color .3s; }
   .win::before { content:""; position:absolute; inset:0; z-index:-1; background:linear-gradient(rgba(255,255,255,.12),rgba(255,255,255,.12)) center/1.5px 100% no-repeat, linear-gradient(rgba(255,255,255,.12),rgba(255,255,255,.12)) center/100% 1.5px no-repeat; }
   .win.on { background:var(--sun); color:var(--on-main); }
-  .win.on::before { background:linear-gradient(rgba(20,27,52,.3),rgba(20,27,52,.3)) center/1.5px 100% no-repeat, linear-gradient(rgba(20,27,52,.3),rgba(20,27,52,.3)) center/100% 1.5px no-repeat; }
+  .win.on::before { background:linear-gradient(rgba(26,21,48,.3),rgba(26,21,48,.3)) center/1.5px 100% no-repeat, linear-gradient(rgba(26,21,48,.3),rgba(26,21,48,.3)) center/100% 1.5px no-repeat; }
   :root[data-theme="light"] .win { border-radius:50%; overflow:visible; background:transparent; border:1.5px dashed rgba(255,255,255,.4); }
   :root[data-theme="light"] .win::before { display:none; }
   :root[data-theme="light"] .win.on { border-color:transparent; background:var(--sun); box-shadow:0 0 0 3px rgba(255,174,26,.3); }
@@ -101,7 +101,7 @@
   .who span:last-child { white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
   .who.me { color:var(--ink); }
   .av { position:relative; z-index:0; overflow:hidden; width:26px; height:26px; border-radius:8px; display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:800; color:#fff; flex-shrink:0; }
-  .av::before { content:""; position:absolute; inset:0; z-index:-1; background:linear-gradient(rgba(20,27,52,.3),rgba(20,27,52,.3)) center/1.5px 100% no-repeat, linear-gradient(rgba(20,27,52,.3),rgba(20,27,52,.3)) center/100% 1.5px no-repeat; }
+  .av::before { content:""; position:absolute; inset:0; z-index:-1; background:linear-gradient(rgba(26,21,48,.3),rgba(26,21,48,.3)) center/1.5px 100% no-repeat, linear-gradient(rgba(26,21,48,.3),rgba(26,21,48,.3)) center/100% 1.5px no-repeat; }
   :root[data-theme="light"] .av { border-radius:50%; overflow:visible; box-shadow:0 0 0 3px rgba(255,174,26,.35); }
   :root[data-theme="light"] .av::before { display:none; }
   .logo { display:inline-flex; vertical-align:-5px; margin-right:7px; }
@@ -447,7 +447,7 @@ function effTheme(){ if (themePref === "light") return "light"; if (themePref ==
 function applyTheme(){
   const e = effTheme();
   document.documentElement.setAttribute("data-theme", e);
-  const m = document.querySelector('meta[name="theme-color"]'); if (m) m.setAttribute("content", e === "light" ? "#FFF6E3" : "#141B34");
+  const m = document.querySelector('meta[name="theme-color"]'); if (m) m.setAttribute("content", e === "light" ? "#FFF6E3" : "#1A1530");
 }
 function setTheme(v){ themePref = ["dark", "light", "auto"].includes(v) ? v : "dark"; try { localStorage.setItem(THEME_KEY, themePref); } catch(e) {} render(); }
 function setLang(l){ lang = l === "en" ? "en" : "ko"; try { localStorage.setItem(LANG_KEY, lang); } catch(e) {} document.documentElement.lang = lang; render(); }
@@ -1519,7 +1519,7 @@ const SHEETS = { chore: id => choreSheet(id), item: id => itemSheet(id), shelf: 
 // ===== 머리 (집 이름 · 인원 · 저장 상태, 초대·설정 버튼, 큰 화면 제목) =====
 const PAGE_TITLE = {chores:"오늘 우리 집", items:"물건 찾기", fridge:"냉장고·공용품", alerts:"알림", settings:"설정"};
 // 로고: 밤에는 불 켜진 창, 낮에는 해
-const LOGO = `<svg class="nt" viewBox="0 0 22 22"><rect x="2" y="2" width="18" height="18" rx="4.5" fill="#FFC83D"/><path d="M11 2v18M2 11h18" stroke="#141B34" stroke-width="1.7"/></svg><svg class="lt" viewBox="0 0 22 22"><circle cx="11" cy="11" r="5" fill="#FFAE1A"/><path d="M11 1.5v2.6M11 17.9v2.6M1.5 11h2.6M17.9 11h2.6M4.3 4.3l1.9 1.9M15.8 15.8l1.9 1.9M4.3 17.7l1.9-1.9M15.8 6.2l1.9-1.9" stroke="#FFAE1A" stroke-width="1.8" stroke-linecap="round"/></svg>`;
+const LOGO = `<svg class="nt" viewBox="0 0 22 22"><path d="M4.6 11.2L11 5.7l6.4 5.5v6H4.6z" fill="none" stroke="#FFC857" stroke-width="1.5" stroke-linejoin="round"/><rect x="9.2" y="11.6" width="3.6" height="3.6" rx="0.9" fill="#FFC857"/></svg><svg class="lt" viewBox="0 0 22 22"><circle cx="11" cy="11" r="5" fill="#FFAE1A"/><path d="M11 1.5v2.6M11 17.9v2.6M1.5 11h2.6M17.9 11h2.6M4.3 4.3l1.9 1.9M15.8 15.8l1.9 1.9M4.3 17.7l1.9-1.9M15.8 6.2l1.9-1.9" stroke="#FFAE1A" stroke-width="1.8" stroke-linecap="round"/></svg>`;
 // 빈 화면 그림: 밤에는 불 꺼진 창, 낮에는 점선 해
 const EMPTY_ART = `<span class="eart" aria-hidden="true"><svg class="nt" viewBox="0 0 44 44"><rect x="4" y="4" width="36" height="36" rx="9"/><path d="M22 4v36M4 22h36"/></svg><svg class="lt" viewBox="0 0 44 44"><circle cx="22" cy="22" r="9" fill="none" stroke="#D2BE86" stroke-width="2.4" stroke-dasharray="4 3"/><path d="M22 4v6M22 34v6M4 22h6M34 22h6M9.3 9.3l4.2 4.2M30.5 30.5l4.2 4.2M9.3 34.7l4.2-4.2M30.5 13.5l4.2-4.2" stroke="#D2BE86" stroke-width="2.4" stroke-linecap="round"/></svg></span>`;
 const ICON_INVITE = `<svg viewBox="0 0 24 24"><path d="M15 19c0-2.2-2.7-4-6-4s-6 1.8-6 4"/><circle cx="9" cy="8" r="3.5"/><path d="M19 8v6M16 11h6"/></svg>`;
