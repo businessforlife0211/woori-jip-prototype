@@ -11,7 +11,7 @@
 <link rel="apple-touch-icon" href="./apple-touch-icon.png">
 <meta name="apple-mobile-web-app-title" content="우리 집">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
-<title>우리 집 프로토타입 v45</title>
+<title>우리 집 프로토타입 v46</title>
 <script>try{var _t=localStorage.getItem("proto_theme_v1")||"dark",_h=new Date().getHours();document.documentElement.setAttribute("data-theme",(_t==="light"||(_t==="auto"&&_h>=7&&_h<19))?"light":"dark")}catch(e){document.documentElement.setAttribute("data-theme","dark")}</script>
 <style>
   /* ===== 디자인 기준 (v39): 밤(다크)이 기본, 낮(라이트)은 따뜻한 크림색. 색은 전부 아래 변수로만 씀 ===== */
@@ -1609,7 +1609,7 @@ const SHEETS = { chore: id => choreSheet(id), item: id => itemSheet(id), shelf: 
 // ===== 머리 (집 이름 · 인원 · 저장 상태, 초대·설정 버튼, 큰 화면 제목) =====
 const PAGE_TITLE = {chores:"오늘 우리 집", items:"물건 찾기", fridge:"냉장고·공용품", alerts:"알림", settings:"설정"};
 // 로고: 밤에는 불 켜진 창, 낮에는 해
-const LOGO = `<svg class="nt" viewBox="0 0 22 22"><path d="M4.6 11.2L11 5.7l6.4 5.5v6H4.6z" fill="none" stroke="#FFC857" stroke-width="1.5" stroke-linejoin="round"/><rect x="9.2" y="11.6" width="3.6" height="3.6" rx="0.9" fill="#FFC857"/></svg><svg class="lt" viewBox="0 0 22 22"><circle cx="11" cy="11" r="5" fill="#FFAE1A"/><path d="M11 1.5v2.6M11 17.9v2.6M1.5 11h2.6M17.9 11h2.6M4.3 4.3l1.9 1.9M15.8 15.8l1.9 1.9M4.3 17.7l1.9-1.9M15.8 6.2l1.9-1.9" stroke="#FFAE1A" stroke-width="1.8" stroke-linecap="round"/></svg>`;
+const LOGO = `<svg class="nt" viewBox="0 0 22 22"><path d="M4.6 11.2L11 5.7l6.4 5.5v6H4.6z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/><rect x="9.2" y="11.6" width="3.6" height="3.6" rx="0.9" fill="#25D366"/></svg><svg class="lt" viewBox="0 0 22 22"><circle cx="11" cy="11" r="5" fill="#FFAE1A"/><path d="M11 1.5v2.6M11 17.9v2.6M1.5 11h2.6M17.9 11h2.6M4.3 4.3l1.9 1.9M15.8 15.8l1.9 1.9M4.3 17.7l1.9-1.9M15.8 6.2l1.9-1.9" stroke="#FFAE1A" stroke-width="1.8" stroke-linecap="round"/></svg>`;
 // 빈 화면 그림: 밤에는 불 꺼진 창, 낮에는 점선 해
 const EMPTY_ART = `<span class="eart" aria-hidden="true"><svg class="nt" viewBox="0 0 44 44"><path d="M7 22L22 8l15 14v15H7z"/><rect x="18" y="25" width="8" height="8" rx="2"/></svg><svg class="lt" viewBox="0 0 44 44"><circle cx="22" cy="22" r="9" fill="none" stroke="#D2BE86" stroke-width="2.4" stroke-dasharray="4 3"/><path d="M22 4v6M22 34v6M4 22h6M34 22h6M9.3 9.3l4.2 4.2M30.5 30.5l4.2 4.2M9.3 34.7l4.2-4.2M30.5 13.5l4.2-4.2" stroke="#D2BE86" stroke-width="2.4" stroke-linecap="round"/></svg></span>`;
 const ICON_INVITE = `<svg viewBox="0 0 24 24"><path d="M15 19c0-2.2-2.7-4-6-4s-6 1.8-6 4"/><circle cx="9" cy="8" r="3.5"/><path d="M19 8v6M16 11h6"/></svg>`;
