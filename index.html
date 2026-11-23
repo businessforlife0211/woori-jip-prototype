@@ -11,7 +11,7 @@
 <link rel="apple-touch-icon" href="./apple-touch-icon.png">
 <meta name="apple-mobile-web-app-title" content="우리 집">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
-<title>우리 집 프로토타입 v47</title>
+<title>우리 집 프로토타입 v48</title>
 <script>try{var _t=localStorage.getItem("proto_theme_v1")||"dark",_h=new Date().getHours();document.documentElement.setAttribute("data-theme",(_t==="light"||(_t==="auto"&&_h>=7&&_h<19))?"light":"dark")}catch(e){document.documentElement.setAttribute("data-theme","dark")}</script>
 <style>
   /* ===== 디자인 기준 (v39): 밤(다크)이 기본, 낮(라이트)은 따뜻한 크림색. 색은 전부 아래 변수로만 씀 ===== */
@@ -497,7 +497,7 @@ const EN = {
   "특정한 사람을 가리키지 마세요. 이름, 별명, 방 번호, '○○이가 안 함' 같은 말은 적을 수 없어요. 물건이나 칸, 상황으로만 적어 주세요. 작성자는 기록되지 않아요.":"Don't point at a specific person. You can't write names, nicknames, room numbers or things like '○○ didn't do it'. Write only about items, spaces or situations. The author is not recorded.",
   "남기기":"Post", "장소 없음":"No place", "예: 싱크대 기름 많음, 쌀이 거의 없음":"e.g. sink greasy, almost out of rice",
   "아직 남긴 메모가 없어요.":"No notes yet.", "지금 알림":"Right now", "지금 알릴 것이 없어요.":"Nothing to alert right now.",
-  "알림 설정":"Notification settings", "화면 색":"Appearance", "다크":"Dark", "라이트":"Light", "자동":"Auto", "밤에는 어두운 화면이 기본이에요. 자동은 낮에만 밝아져요.":"Dark is the default at night. Auto switches to light during the day.", "유통기한 임박":"Expiring soon", "청소 당번":"Chore rota", "공용품 부족":"Low supplies", "켜짐":"On", "꺼짐":"Off",
+  "알림 설정":"Notification settings", "라이트 모드":"Light mode", "다크 모드":"Dark mode", "하나 빼기":"Remove one", "하나 더하기":"Add one", "들어 있는 것":"Contains", "화면 색":"Appearance", "다크":"Dark", "라이트":"Light", "자동":"Auto", "밤에는 어두운 화면이 기본이에요. 자동은 낮에만 밝아져요.":"Dark is the default at night. Auto switches to light during the day.", "유통기한 임박":"Expiring soon", "청소 당번":"Chore rota", "공용품 부족":"Low supplies", "켜짐":"On", "꺼짐":"Off",
   "앱을 열었을 때 보이는 알림 목록입니다. 휴대폰 푸시 알림은 서버를 붙인 뒤에 가능합니다.":"This list shows when you open the app. Phone push notifications will be possible after a server is connected.",
   "언어":"Language", "앱 안의 글자를 바꿔요. 이 기기에만 저장돼요.":"Changes the text in the app. Saved on this device only.",
   "언어를 바꿔도 저장된 물건·음식 기록은 그대로 남아요. 이름이나 메모처럼 직접 적은 글은 번역되지 않아요.":"Changing the language keeps your saved items and food. Text you typed yourself, like names and notes, is not translated.",
@@ -528,7 +528,7 @@ function translateDom(root){
   if (!root || lang !== "en") return;
   const w = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
   for (let n = w.nextNode(); n; n = w.nextNode()) { const t = tr(n.nodeValue); if (t !== n.nodeValue) n.nodeValue = t; }
-  root.querySelectorAll("[placeholder]").forEach(el => { const p = el.getAttribute("placeholder"), q = tr(p); if (q !== p) el.setAttribute("placeholder", q); });
+  root.querySelectorAll("[placeholder],[aria-label],[title]").forEach(el => { for (const a of ["placeholder", "aria-label", "title"]) { const p = el.getAttribute(a); if (p == null) continue; const q = tr(p); if (q !== p) el.setAttribute(a, q); } });
 }
 // 화면 색: 다크가 기본. 자동은 오전 7시~오후 7시에 라이트. 이 기기에만 저장
 const THEME_KEY = "proto_theme_v1";
@@ -865,11 +865,11 @@ function readPlace(loc, p){
   return {spaceId: null, spot: v || null};
 }
 // 목록에 보이는 장소 이름 (칸이 연결돼 있으면 칸 이름, 아니면 적은 칸 이름)
-function placeName(i){ return i.spaceId && spaceOf(i.spaceId) ? spaceOf(i.spaceId).name : (i.spot || ""); }
+function placeName(i){ return en(i.spaceId && spaceOf(i.spaceId) ? spaceOf(i.spaceId).name : (i.spot || "")); }
 // 칸에 들어 있는 물건 이름을 칸 카드에 보여 줌
 function linkedItems(s){
   const names = S.items.filter(i => i.spaceId === s.id).map(i => esc(i.name));
-  return names.length ? `<div class="muted" style="font-size:12px;margin-top:4px">들어 있는 것: ${names.join(", ")}</div>` : "";
+  return names.length ? `<div class="muted" style="font-size:12px;margin-top:4px">${en("들어 있는 것")}: ${names.join(", ")}</div>` : "";
 }
 function seg(key, opts){ return `<div class="seg">${opts.map(([v,l]) => `<button class="sm ${sub[key]===v?'':'ghost'}" onclick="sub.${key}='${v}';render()">${l}</button>`).join("")}</div>`; }
 
@@ -1478,7 +1478,8 @@ function showEditSupply(id){
     <label>품목 이름</label><input id="sname" value="${esc(s.name)}">
     <label>샀을 때 가격 (£, 선택)</label><input id="sprice" type="text" inputmode="decimal" autocomplete="off" oninput="fmtPriceInput(this)" value="${s.price != null ? moneyText(s.price) : ""}">
     <label>구매일 (선택)</label><input id="sdate" type="date" min="1000-01-01" max="9999-12-31" value="${s.date || ""}">
-    <div class="row" style="margin-top:8px"><button onclick="saveSupply(${id})">저장</button><button class="ghost" onclick="render()">취소</button></div></div>`;
+    <div class="row" style="margin-top:8px"><button onclick="saveSupply(${id})">저장</button><button class="ghost" onclick="render()">취소</button></div>
+    <button class="danger big" style="margin-top:10px" onclick="delSupply(${id})">삭제</button></div>`;
   const box = document.getElementById("sname"); box.focus(); box.scrollIntoView({block: "center"});
 }
 function saveSupply(id){
