@@ -11,7 +11,7 @@
 <link rel="apple-touch-icon" href="./apple-touch-icon.png">
 <meta name="apple-mobile-web-app-title" content="우리 집">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
-<title>우리 집 프로토타입 v49</title>
+<title>우리 집 프로토타입 v50</title>
 <script>try{var _t=localStorage.getItem("proto_theme_v1")||"dark",_h=new Date().getHours();document.documentElement.setAttribute("data-theme",(_t==="light"||(_t==="auto"&&_h>=7&&_h<19))?"light":"dark")}catch(e){document.documentElement.setAttribute("data-theme","dark")}</script>
 <style>
   /* ===== 디자인 기준 (v39): 밤(다크)이 기본, 낮(라이트)은 따뜻한 크림색. 색은 전부 아래 변수로만 씀 ===== */
@@ -1581,7 +1581,7 @@ function settingsView(){
       <div class="card"><b>내 이름</b>
         <div class="row" style="margin-top:6px"><input id="setMe" maxlength="20" value="${esc(S.me || "")}" placeholder="예: 우상" style="flex:1"><button class="sm" onclick="saveMyName()">저장</button></div>
         <div class="muted" style="margin-top:6px">바꾸면 담당, 물건 주인, 기록에 있던 내 이름도 같이 바뀌어요.</div></div>` : ""}
-    ${S.started ? `<div class="sec">알림 설정</div><div class="list">${[["food","유통기한 임박"],["chore",isSolo() ? "청소" : "청소 당번"],["supply",SUP() + " 부족"]].map(([k,l]) =>
+    ${S.started ? `<div class="sec">알림 설정</div><div class="list">${[["food","유통기한 임박"], ...(isSolo() ? [] : [["chore","청소 당번"]]), ["supply",SUP() + " 부족"]].map(([k,l]) =>
       `<div class="li" style="cursor:default"><div class="main"><div class="t" style="font-size:15px">${l}</div></div><button class="sm ${S.notify[k] ? '' : 'ghost'}" onclick="toggleNotify('${k}')">${S.notify[k] ? "켜짐" : "꺼짐"}</button></div>`).join("")}</div>` : ""}
     <div class="muted">언어를 바꿔도 저장된 물건·음식 기록은 그대로 남아요. 이름이나 메모처럼 직접 적은 글은 번역되지 않아요.</div>
     ${S.started ? `<button class="ghost big" onclick="goStart()">처음 화면으로</button>` : ""}
@@ -2015,15 +2015,17 @@ function render(){
   cleanBookings();
   cleanUsers();
   if(!S.started && tab !== "settings") tab = "home";
-  // 집에 들어간 뒤에는 집 화면 대신 청소·주방 탭을 처음으로 보여 줌
-  if(S.started && tab === "home") tab = "chores";
+  // 집에 들어간 뒤에는 집 화면 대신 청소·주방 탭을 처음으로 보여 줌. 혼자 쓸 땐 청소·주방 탭 자체를 안 써서 물건 탭으로 감
+  if(S.started && tab === "home") tab = isSolo() ? "items" : "chores";
+  // 집 모드에서 혼자 쓰다가 청소 탭이 남아 있으면(이전 상태 복원 등) 물건 탭으로 보냄
+  if(S.started && tab === "chores" && isSolo()) tab = "items";
   removeSheet();
   document.getElementById("title").innerHTML = headerHTML();
   updateSync();
   if (S.started && tab === "alerts") markAlertsSeen();
   const pop = popTab; popTab = null;
   document.getElementById("nav").innerHTML = S.started
-    ? TABS.map(([k,l,i]) => { const b = k === "alerts" ? alertBadge() : 0; return `<button class="${tab === k ? 'on' : ''}${pop === k ? ' pop' : ''}" onclick="go('${k}')"><span class="ico">${i}${b ? `<span class="badge">${b}</span>` : ""}</span>${tabLabel(k, l)}</button>`; }).join("")
+    ? TABS.filter(([k]) => !(isSolo() && k === "chores")).map(([k,l,i]) => { const b = k === "alerts" ? alertBadge() : 0; return `<button class="${tab === k ? 'on' : ''}${pop === k ? ' pop' : ''}" onclick="go('${k}')"><span class="ico">${i}${b ? `<span class="badge">${b}</span>` : ""}</span>${tabLabel(k, l)}</button>`; }).join("")
     : "";
   const views = {home:homeView, items:itemsView, chores:choresView, fridge:fridgeView, alerts:alertsView, settings:settingsView};
   document.getElementById("view").innerHTML = views[tab]();
