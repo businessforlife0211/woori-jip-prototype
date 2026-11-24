@@ -11,7 +11,7 @@
 <link rel="apple-touch-icon" href="./apple-touch-icon.png">
 <meta name="apple-mobile-web-app-title" content="우리 집">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
-<title>우리 집 프로토타입 v50</title>
+<title>우리 집 프로토타입 v51</title>
 <script>try{var _t=localStorage.getItem("proto_theme_v1")||"dark",_h=new Date().getHours();document.documentElement.setAttribute("data-theme",(_t==="light"||(_t==="auto"&&_h>=7&&_h<19))?"light":"dark")}catch(e){document.documentElement.setAttribute("data-theme","dark")}</script>
 <style>
   /* ===== 디자인 기준 (v39): 밤(다크)이 기본, 낮(라이트)은 따뜻한 크림색. 색은 전부 아래 변수로만 씀 ===== */
@@ -508,7 +508,7 @@ const EN = {
   "앱을 열었을 때 보이는 알림 목록입니다. 휴대폰 푸시 알림은 서버를 붙인 뒤에 가능합니다.":"This list shows when you open the app. Phone push notifications will be possible after a server is connected.",
   "언어":"Language", "앱 안의 글자를 바꿔요. 이 기기에만 저장돼요.":"Changes the text in the app. Saved on this device only.",
   "언어를 바꿔도 저장된 물건·음식 기록은 그대로 남아요. 이름이나 메모처럼 직접 적은 글은 번역되지 않아요.":"Changing the language keeps your saved items and food. Text you typed yourself, like names and notes, is not translated.",
-  "혼자 쓰기":"Use it alone", "처음 화면으로":"Back to start", "먹고 버린 기록":"Eaten & thrown-away log", "먹음":"Eaten",
+  "처음 화면으로":"Back to start", "먹고 버린 기록":"Eaten & thrown-away log", "먹음":"Eaten",
   "이미 예약된 시간이 겹쳐요. 다른 시간을 골라 주세요":"That time overlaps a booking. Please pick another time.",
   "기한 지남":"Expired", "오늘 만료":"Expires today", "내일 만료":"Expires tomorrow", "아직 안 함":"— not done yet", "청소":"Cleaning",
   "지금 담당":"Assigned now", "내 청소":"My cleaning", "곧 만료":"Expiring soon", "부족":"Low", "바꾸면 담당, 물건 주인, 기록에 있던 내 이름도 같이 바뀌어요.":"Changing it also updates your name in chores, item owners and logs.",
@@ -885,13 +885,11 @@ function startHTML(){
   return `<div class="card">
     <div class="sec" style="margin-top:0">지금 무엇을 하고 싶으세요?</div>
     <button class="big" onclick="showCreate()">그룹 만들기</button>
-    <button class="ghost big" onclick="pickSolo()">혼자 쓰기</button>
     <button class="ghost big" onclick="showJoin()">초대 코드가 있어요</button>
     <button class="ghost big" onclick="go('settings')">설정</button>
   </div><div id="formArea"></div>
   <div style="text-align:center;margin-top:8px"><button class="sech act" style="background:none;color:var(--muted);font-weight:600;font-size:13px;min-height:36px" onclick="openPrivacy()">개인정보 안내</button></div>`;
 }
-function pickSolo(){ S.started = true; S.mode = "solo"; tab = "items"; save(); render(); }
 function showCreate(){
   document.getElementById("formArea").innerHTML = `<div class="card">
     <label>집 이름</label><input id="hn" placeholder="예: 런던 기숙사 3층 주방">
